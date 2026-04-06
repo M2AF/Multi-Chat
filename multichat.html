@@ -7,145 +7,372 @@
 <style>
   @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
 
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+  /* ── Reset & Base ── */
+  * { 
+    margin: 0; 
+    padding: 0; 
+    box-sizing: border-box; 
+  }
 
   :root {
+    /* Platform Colors */
     --twitch: #9147ff;
     --youtube: #ff0000;
     --kick: #53fc18;
     --abstract: #00ffa3;
-    --bg: #0e0e10;
-    --surface: #18181b;
+    
+    /* Dynamic UI Variables */
+    --bg-alpha: 1;
+    --font-scale: 1;
+    
+    /* Themed Colors (linked to alpha) */
+    --bg: rgba(14, 14, 16, var(--bg-alpha));
+    --surface: rgba(24, 24, 27, var(--bg-alpha));
     --surface2: #1f1f23;
-    --border: rgba(255,255,255,0.07);
+    --border: rgba(255, 255, 255, 0.07);
     --text: #efeff1;
     --muted: #adadb8;
+    
+    /* Typography */
     --font: 'IBM Plex Sans', sans-serif;
     --mono: 'IBM Plex Mono', monospace;
   }
 
-  html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--font); overflow: hidden; }
+  /* CRITICAL FOR OBS TRANSPARENCY: 
+     Force the browser engine's floor to be transparent 
+  */
+  html, body { 
+    height: 100%; 
+    background: transparent !important; 
+    color: var(--text); 
+    font-family: var(--font); 
+    overflow: hidden; 
+  }
 
-  #app { display: flex; flex-direction: column; height: 100vh; }
+  #app { 
+    display: flex; 
+    flex-direction: column; 
+    height: 100vh; 
+    background: var(--bg); 
+    transition: background 0.1s ease; 
+  }
 
+  /* ── Header ── */
   header {
-    display: flex; align-items: center; justify-content: space-between;
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between;
     padding: 8px 12px;
     background: var(--surface);
     border-bottom: 1px solid var(--border);
     flex-shrink: 0;
+    gap: 12px;
+    flex-wrap: wrap;
   }
 
-  .header-left { display: flex; align-items: center; gap: 8px; }
-  .logo { font-family: var(--mono); font-size: 13px; font-weight: 500; color: var(--text); letter-spacing: 0.03em; }
+  .header-left { 
+    display: flex; 
+    align-items: center; 
+    gap: 8px; 
+    flex-wrap: wrap; 
+  }
+
+  .logo { 
+    font-family: var(--mono); 
+    font-size: 13px; 
+    font-weight: 500; 
+    color: var(--text); 
+    letter-spacing: 0.03em; 
+  }
+
   .live-badge {
-    font-size: 10px; font-weight: 600; letter-spacing: 0.08em;
-    background: #eb0400; color: #fff;
-    padding: 2px 6px; border-radius: 3px;
+    font-size: 10px; 
+    font-weight: 600; 
+    letter-spacing: 0.08em;
+    background: #eb0400; 
+    color: #fff;
+    padding: 2px 6px; 
+    border-radius: 3px;
     text-transform: uppercase;
   }
 
-  .filter-tabs { display: flex; gap: 4px; }
-  .tab {
-    font-size: 11px; font-weight: 500; padding: 3px 8px;
-    border-radius: 4px; border: 1px solid transparent;
-    cursor: pointer; transition: all 0.15s; background: none;
-    color: var(--muted); font-family: var(--font);
-    display: flex; align-items: center; gap: 5px;
+  /* ── Control Sliders ── */
+  .control-group {
+    display: flex; 
+    align-items: center; 
+    gap: 6px; 
+    background: rgba(255, 255, 255, 0.05); 
+    padding: 2px 8px; 
+    border-radius: 4px; 
+    border: 1px solid var(--border);
   }
-  .tab.active-all    { background: rgba(255,255,255,0.08); color: var(--text); border-color: var(--border); }
-  .tab.active-twitch { background: rgba(145,71,255,0.15); color: var(--twitch); border-color: rgba(145,71,255,0.3); }
-  .tab.active-youtube{ background: rgba(255,0,0,0.12); color: #ff4444; border-color: rgba(255,0,0,0.25); }
-  .tab.active-kick     { background: rgba(83,252,24,0.1); color: var(--kick); border-color: rgba(83,252,24,0.25); }
-  .tab.active-abstract { background: rgba(0,255,163,0.1); color: var(--abstract); border-color: rgba(0,255,163,0.25); }
-  .tab:hover:not([class*="active"]) { background: rgba(255,255,255,0.04); color: var(--text); }
 
+  .control-label { 
+    font-size: 9px; 
+    font-family: var(--mono); 
+    color: var(--muted); 
+    text-transform: uppercase; 
+  }
+
+  .control-val { 
+    font-size: 9px; 
+    font-family: var(--mono); 
+    color: var(--abstract); 
+    min-width: 28px; 
+    text-align: right; 
+  }
+  
+  input[type="range"] { 
+    width: 45px; 
+    height: 4px; 
+    accent-color: var(--abstract); 
+    cursor: pointer; 
+  }
+
+  /* ── Filter Tabs ── */
+  .filter-tabs { 
+    display: flex; 
+    gap: 4px; 
+  }
+
+  .tab {
+    font-size: 11px; 
+    font-weight: 500; 
+    padding: 3px 8px;
+    border-radius: 4px; 
+    border: 1px solid transparent;
+    cursor: pointer; 
+    transition: all 0.15s; 
+    background: none;
+    color: var(--muted); 
+    font-family: var(--font);
+    display: flex; 
+    align-items: center; 
+    gap: 5px;
+  }
+
+  .tab.active-all    { background: rgba(255, 255, 255, 0.08); color: var(--text); border-color: var(--border); }
+  .tab.active-twitch { background: rgba(145, 71, 255, 0.15); color: var(--twitch); border-color: rgba(145, 71, 255, 0.3); }
+  .tab.active-youtube{ background: rgba(255, 0, 0, 0.12); color: #ff4444; border-color: rgba(255, 0, 0, 0.25); }
+  .tab.active-kick     { background: rgba(83, 252, 24, 0.1); color: var(--kick); border-color: rgba(83, 252, 24, 0.25); }
+  .tab.active-abstract { background: rgba(0, 255, 163, 0.1); color: var(--abstract); border-color: rgba(0, 255, 163, 0.25); }
+  
+  .tab:hover:not([class*="active"]) { 
+    background: rgba(255, 255, 255, 0.04); 
+    color: var(--text); 
+  }
+
+  /* ── Messages Area ── */
   #messages {
-    flex: 1; overflow-y: auto; padding: 6px 0;
+    flex: 1; 
+    overflow-y: auto; 
+    padding: 6px 0;
     scroll-behavior: smooth;
   }
-  #messages::-webkit-scrollbar { width: 4px; }
-  #messages::-webkit-scrollbar-track { background: transparent; }
-  #messages::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+
+  /* Custom Scrollbar linked to BG opacity */
+  #messages::-webkit-scrollbar { 
+    width: 4px; 
+  }
+  #messages::-webkit-scrollbar-track { 
+    background: transparent; 
+  }
+  #messages::-webkit-scrollbar-thumb { 
+    background: rgba(255, 255, 255, calc(0.2 * var(--bg-alpha))); 
+    border-radius: 2px; 
+  }
 
   .msg {
-    display: flex; align-items: flex-start; gap: 8px;
-    padding: 5px 12px; transition: background 0.1s;
+    display: flex; 
+    align-items: flex-start; 
+    gap: 8px;
+    padding: 5px 12px; 
+    transition: background 0.1s;
   }
-  .msg:hover { background: rgba(255,255,255,0.03); }
-  .platform-hidden { display: none !important; }
 
-  .username { font-size: 12px; font-weight: 600; white-space: nowrap; }
+  .msg:hover { 
+    background: rgba(255, 255, 255, 0.03); 
+  }
+
+  .platform-hidden { 
+    display: none !important; 
+  }
+
+  /* ── Chat Content Scaling ── */
+  .username { 
+    font-size: calc(12px * var(--font-scale)); 
+    font-weight: 600; 
+    white-space: nowrap; 
+  }
+  
   .u-twitch    { color: var(--twitch); }
   .u-youtube   { color: #ff4444; }
   .u-kick      { color: var(--kick); }
   .u-abstract  { color: var(--abstract); }
 
-  .timestamp { font-size: 10px; color: rgba(173,173,184,0.45); font-family: var(--mono); }
+  .timestamp { 
+    font-size: calc(10px * var(--font-scale)); 
+    color: rgba(173, 173, 184, 0.45); 
+    font-family: var(--mono); 
+  }
 
-  .badge { font-size: 9px; font-weight: 600; letter-spacing: 0.05em; padding: 1px 4px; border-radius: 2px; text-transform: uppercase; }
-  .badge-sub { background: rgba(145,71,255,0.2); color: #c08fff; }
-  .badge-mod { background: rgba(83,252,24,0.12); color: #7dff6b; }
-  .badge-vip { background: rgba(255,180,0,0.15); color: #ffcc44; }
+  .badge { 
+    font-size: calc(9px * var(--font-scale)); 
+    font-weight: 600; 
+    letter-spacing: 0.05em; 
+    padding: 1px 4px; 
+    border-radius: 2px; 
+    text-transform: uppercase; 
+  }
+  
+  .badge-sub { background: rgba(145, 71, 255, 0.2); color: #c08fff; }
+  .badge-mod { background: rgba(83, 252, 24, 0.12); color: #7dff6b; }
+  .badge-vip { background: rgba(255, 180, 0, 0.15); color: #ffcc44; }
 
-  .msg-body  { flex: 1; min-width: 0; }
-  .msg-header{ display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
-  .msg-text  { font-size: 13px; color: var(--text); line-height: 1.5; margin-top: 1px; word-break: break-word; }
+  .msg-body  { 
+    flex: 1; 
+    min-width: 0; 
+  }
+  
+  .msg-header { 
+    display: flex; 
+    align-items: baseline; 
+    gap: 6px; 
+    flex-wrap: wrap; 
+  }
+  
+  .msg-text  { 
+    font-size: calc(13px * var(--font-scale)); 
+    color: var(--text); 
+    line-height: 1.5; 
+    margin-top: 1px; 
+    word-break: break-word; 
+  }
 
   .platform-tag {
-    font-size: 9px; font-family: var(--mono); font-weight: 500;
-    padding: 1px 4px; border-radius: 2px; letter-spacing: 0.04em;
-    text-transform: uppercase; flex-shrink: 0; margin-top: 3px;
+    font-size: calc(9px * var(--font-scale)); 
+    font-family: var(--mono); 
+    font-weight: 500;
+    padding: 1px 4px; 
+    border-radius: 2px; 
+    letter-spacing: 0.04em;
+    text-transform: uppercase; 
+    flex-shrink: 0; 
+    margin-top: 3px;
   }
-  .pt-twitch   { background: rgba(145,71,255,0.15); color: #c08fff; }
-  .pt-youtube  { background: rgba(255,0,0,0.12); color: #ff8080; }
-  .pt-kick     { background: rgba(83,252,24,0.1); color: #7dff6b; }
-  .pt-abstract { background: rgba(0,255,163,0.1); color: #00ffa3; }
+  
+  .pt-twitch   { background: rgba(145, 71, 255, 0.15); color: #c08fff; }
+  .pt-youtube  { background: rgba(255, 0, 0, 0.12); color: #ff8080; }
+  .pt-kick     { background: rgba(83, 252, 24, 0.1); color: #7dff6b; }
+  .pt-abstract { background: rgba(0, 255, 163, 0.1); color: #00ffa3; }
 
+  /* ── Links Bar ── */
   .links-bar {
-    display: flex; gap: 6px; padding: 6px 12px;
-    background: rgba(0,0,0,0.2);
+    display: flex; 
+    gap: 6px; 
+    padding: 6px 12px;
+    background: rgba(0, 0, 0, 0.2);
     border-bottom: 1px solid var(--border);
     flex-shrink: 0;
+    overflow-x: auto;
+    /* Invisible horizontal scroll */
+    scrollbar-width: none; 
+    -ms-overflow-style: none; 
   }
-  .stream-link {
-    font-size: 10px; font-family: var(--mono);
-    padding: 2px 7px; border-radius: 3px;
-    text-decoration: none; font-weight: 500;
-    transition: opacity 0.15s;
+  
+  .links-bar::-webkit-scrollbar { 
+    display: none; 
   }
-  .stream-link:hover { opacity: 0.75; }
-  .sl-twitch    { background: rgba(145,71,255,0.15); color: #c08fff; }
-  .sl-youtube   { background: rgba(255,0,0,0.12); color: #ff8080; }
-  .sl-kick      { background: rgba(83,252,24,0.1); color: #7dff6b; }
-  .sl-abstract  { background: rgba(0,255,163,0.1); color: #00ffa3; }
 
+  .stream-link {
+    font-size: 10px; 
+    font-family: var(--mono);
+    padding: 2px 7px; 
+    border-radius: 3px;
+    text-decoration: none; 
+    font-weight: 500;
+    transition: opacity 0.15s;
+    white-space: nowrap;
+  }
+  
+  .stream-link:hover { opacity: 0.75; }
+  .sl-twitch    { background: rgba(145, 71, 255, 0.15); color: #c08fff; }
+  .sl-youtube   { background: rgba(255, 0, 0, 0.12); color: #ff8080; }
+  .sl-kick      { background: rgba(83, 252, 24, 0.1); color: #7dff6b; }
+  .sl-abstract  { background: rgba(0, 255, 163, 0.1); color: #00ffa3; }
+
+  /* ── Footer ── */
   footer {
     padding: 8px 12px;
     background: var(--surface);
     border-top: 1px solid var(--border);
-    display: flex; align-items: center; justify-content: space-between;
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between;
     flex-shrink: 0;
+    gap: 8px;
   }
-  .counters { display: flex; gap: 12px; }
-  .counter { font-size: 11px; color: var(--muted); font-family: var(--mono); display: flex; align-items: center; gap: 4px; }
-  .counter-num { font-weight: 500; color: var(--text); }
+
+  .counters { 
+    display: flex; 
+    gap: 12px; 
+    flex-wrap: wrap; 
+  }
+  
+  .counter { 
+    font-size: 11px; 
+    color: var(--muted); 
+    font-family: var(--mono); 
+    display: flex; 
+    align-items: center; 
+    gap: 4px; 
+  }
+  
+  .counter-num { 
+    font-weight: 500; 
+    color: var(--text); 
+  }
 
   .auto-scroll-btn {
-    font-size: 11px; font-weight: 500; padding: 3px 8px;
-    border-radius: 4px; border: 1px solid var(--border);
-    background: none; color: var(--muted); cursor: pointer;
-    font-family: var(--font); transition: all 0.15s;
+    font-size: 11px; 
+    font-weight: 500; 
+    padding: 3px 8px;
+    border-radius: 4px; 
+    border: 1px solid var(--border);
+    background: none; 
+    color: var(--muted); 
+    cursor: pointer;
+    font-family: var(--font); 
+    transition: all 0.15s;
+    white-space: nowrap;
   }
-  .auto-scroll-btn.on { border-color: rgba(145,71,255,0.4); color: var(--twitch); background: rgba(145,71,255,0.08); }
-  .auto-scroll-btn:hover { background: rgba(255,255,255,0.05); }
+  
+  .auto-scroll-btn.on { 
+    border-color: rgba(145, 71, 255, 0.4); 
+    color: var(--twitch); 
+    background: rgba(145, 71, 255, 0.08); 
+  }
+  
+  .auto-scroll-btn:hover { 
+    background: rgba(255, 255, 255, 0.05); 
+  }
 
   .empty-state {
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    height: 100%; gap: 8px; color: var(--muted); padding: 2rem;
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: center;
+    height: 100%; 
+    gap: 8px; 
+    color: var(--muted); 
+    padding: 2rem;
   }
-  .empty-state p { font-size: 13px; text-align: center; line-height: 1.7; }
-  .empty-state code { font-family: var(--mono); font-size: 11px; background: var(--surface2); padding: 2px 6px; border-radius: 3px; color: #c08fff; }
+  
+  .empty-state p { 
+    font-size: 13px; 
+    text-align: center; 
+    line-height: 1.7; 
+  }
 </style>
 </head>
 <body>
@@ -155,63 +382,60 @@
     <div class="header-left">
       <span class="logo">criptoejesus</span>
       <span class="live-badge">live</span>
+      
+      <div class="control-group">
+        <label for="bg-slider" class="control-label">BG</label>
+        <input type="range" id="bg-slider" min="0" max="1" step="0.01" value="1">
+        <span class="control-val" id="bg-val">100%</span>
+      </div>
+
+      <div class="control-group">
+        <label for="font-slider" class="control-label">Size</label>
+        <input type="range" id="font-slider" min="0.5" max="2" step="0.05" value="1">
+        <span class="control-val" id="font-val">100%</span>
+      </div>
     </div>
+
     <div class="filter-tabs">
       <button class="tab active-all" onclick="setFilter('all',this)">All</button>
       <button class="tab" onclick="setFilter('twitch',this)">
-        <svg width="10" height="10" viewBox="0 0 24 24" fill="#9147ff"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/></svg>
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/></svg>
         Twitch
       </button>
       <button class="tab" onclick="setFilter('youtube',this)">
-        <svg width="10" height="10" viewBox="0 0 24 24" fill="#ff4444"><path d="M23.495 6.205a3.007 3.007 0 0 0-2.088-2.088c-1.87-.501-9.396-.501-9.396-.501s-7.507-.01-9.396.501A3.007 3.007 0 0 0 .527 6.205a31.247 31.247 0 0 0-.522 5.805 31.247 31.247 0 0 0 .522 5.783 3.007 3.007 0 0 0 2.088 2.088c1.868.502 9.396.502 9.396.502s7.506 0 9.396-.502a3.007 3.007 0 0 0 2.088-2.088 31.247 31.247 0 0 0 .5-5.783 31.247 31.247 0 0 0-.5-5.805zM9.609 15.601V8.408l6.264 3.602z"/></svg>
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M23.495 6.205a3.007 3.007 0 0 0-2.088-2.088c-1.87-.501-9.396-.501-9.396-.501s-7.507-.01-9.396.501A3.007 3.007 0 0 0 .527 6.205a31.247 31.247 0 0 0-.522 5.805 31.247 31.247 0 0 0 .522 5.783 3.007 3.007 0 0 0 2.088 2.088c1.868.502 9.396.502 9.396.502s7.506 0 9.396-.502a3.007 3.007 0 0 0 2.088-2.088 31.247 31.247 0 0 0 .5-5.783 31.247 31.247 0 0 0-.5-5.805zM9.609 15.601V8.408l6.264 3.602z"/></svg>
         YouTube
       </button>
       <button class="tab" onclick="setFilter('kick',this)">
-        <svg width="10" height="10" viewBox="0 0 24 24" fill="#53fc18"><path d="M3 2h4v8l5-8h5l-5 8 5 8h-5l-5-8v8H3z"/></svg>
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M3 2h4v8l5-8h5l-5 8 5 8h-5l-5-8v8H3z"/></svg>
         Kick
       </button>
       <button class="tab" onclick="setFilter('abstract',this)">
-        <svg width="10" height="10" viewBox="0 0 24 24" fill="#00ffa3"><circle cx="12" cy="12" r="10"/></svg>
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/></svg>
         Abstract
       </button>
     </div>
   </header>
 
   <div class="links-bar">
-    <a class="stream-link sl-twitch"    href="https://twitch.tv/criptoejesus"             target="_blank">twitch.tv/criptoejesus</a>
-    <a class="stream-link sl-youtube"   href="https://youtube.com/@criptoejesus"          target="_blank">youtube/@criptoejesus</a>
-    <a class="stream-link sl-kick"      href="https://kick.com/criptoejesus"              target="_blank">kick.com/criptoejesus</a>
-    <a class="stream-link sl-abstract"  href="https://abstools.top/criptoejesus"          target="_blank">abstools.top/criptoejesus</a>
+    <a class="stream-link sl-twitch"    href="https://twitch.tv/criptoejesus"    target="_blank">twitch.tv/criptoejesus</a>
+    <a class="stream-link sl-youtube"   href="https://youtube.com/@criptoejesus" target="_blank">youtube/@criptoejesus</a>
+    <a class="stream-link sl-kick"      href="https://kick.com/criptoejesus"     target="_blank">kick.com/criptoejesus</a>
+    <a class="stream-link sl-abstract"  href="https://abstools.top/criptoejesus" target="_blank">abstools.top/criptoejesus</a>
   </div>
 
   <div id="messages">
     <div class="empty-state" id="empty">
-      <p>Waiting for messages…<br><br>
-      Inject chat via JavaScript:<br>
-      <code>addMessage('twitch','Username','hello!','sub')</code><br><br>
-      Platform values: <code>twitch</code> · <code>youtube</code> · <code>kick</code><br>
-      Badge values: <code>sub</code> · <code>mod</code> · <code>vip</code> · <code></code> (none)</p>
+      <p>Waiting for messages…</p>
     </div>
   </div>
 
   <footer>
     <div class="counters">
-      <span class="counter">
-        <svg width="10" height="10" viewBox="0 0 24 24" fill="#9147ff"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/></svg>
-        <span class="counter-num" id="cnt-twitch">0</span>
-      </span>
-      <span class="counter">
-        <svg width="10" height="10" viewBox="0 0 24 24" fill="#ff4444"><path d="M23.495 6.205a3.007 3.007 0 0 0-2.088-2.088c-1.87-.501-9.396-.501-9.396-.501s-7.507-.01-9.396.501A3.007 3.007 0 0 0 .527 6.205a31.247 31.247 0 0 0-.522 5.805 31.247 31.247 0 0 0 .522 5.783 3.007 3.007 0 0 0 2.088 2.088c1.868.502 9.396.502 9.396.502s7.506 0 9.396-.502a3.007 3.007 0 0 0 2.088-2.088 31.247 31.247 0 0 0 .5-5.783 31.247 31.247 0 0 0-.5-5.805zM9.609 15.601V8.408l6.264 3.602z"/></svg>
-        <span class="counter-num" id="cnt-youtube">0</span>
-      </span>
-      <span class="counter">
-        <svg width="10" height="10" viewBox="0 0 24 24" fill="#53fc18"><path d="M3 2h4v8l5-8h5l-5 8 5 8h-5l-5-8v8H3z"/></svg>
-        <span class="counter-num" id="cnt-kick">0</span>
-      </span>
-      <span class="counter">
-        <svg width="10" height="10" viewBox="0 0 24 24" fill="#00ffa3"><circle cx="12" cy="12" r="10"/></svg>
-        <span class="counter-num" id="cnt-abstract">0</span>
-      </span>
+      <span class="counter">TW: <span class="counter-num" id="cnt-twitch">0</span></span>
+      <span class="counter">YT: <span class="counter-num" id="cnt-youtube">0</span></span>
+      <span class="counter">KC: <span class="counter-num" id="cnt-kick">0</span></span>
+      <span class="counter">ABS: <span class="counter-num" id="cnt-abstract">0</span></span>
     </div>
     <button class="auto-scroll-btn on" id="scroll-btn" onclick="toggleAutoScroll()">auto-scroll on</button>
   </footer>
@@ -219,7 +443,7 @@
 </div>
 
 <script>
-/* ── state ── */
+/* ── State Management ── */
 let filter = 'all';
 let autoScroll = true;
 let counts = { twitch: 0, youtube: 0, kick: 0, abstract: 0 };
@@ -227,7 +451,20 @@ let counts = { twitch: 0, youtube: 0, kick: 0, abstract: 0 };
 const msgContainer = document.getElementById('messages');
 const emptyState   = document.getElementById('empty');
 
-/* ── filter ── */
+/* ── UI Handlers ── */
+document.getElementById('bg-slider').addEventListener('input', (e) => {
+  const val = e.target.value;
+  document.documentElement.style.setProperty('--bg-alpha', val);
+  document.getElementById('bg-val').textContent = Math.round(val * 100) + '%';
+});
+
+document.getElementById('font-slider').addEventListener('input', (e) => {
+  const val = e.target.value;
+  document.documentElement.style.setProperty('--font-scale', val);
+  document.getElementById('font-val').textContent = Math.round(val * 100) + '%';
+});
+
+/* ── Filtering ── */
 function setFilter(f, btn) {
   filter = f;
   document.querySelectorAll('.tab').forEach(t => { t.className = 'tab'; });
@@ -237,7 +474,7 @@ function setFilter(f, btn) {
   });
 }
 
-/* ── auto-scroll ── */
+/* ── Scrolling Logic ── */
 function toggleAutoScroll() {
   autoScroll = !autoScroll;
   const btn = document.getElementById('scroll-btn');
@@ -255,30 +492,30 @@ msgContainer.addEventListener('scroll', () => {
   }
 });
 
-/* ── platform config ── */
-const pd = {
+/* ── Platform UI Configuration ── */
+const platformData = {
   twitch:   { tag: 'pt-twitch',   uClass: 'u-twitch',   label: 'TW' },
   youtube:  { tag: 'pt-youtube',  uClass: 'u-youtube',  label: 'YT' },
   kick:     { tag: 'pt-kick',     uClass: 'u-kick',     label: 'KC' },
   abstract: { tag: 'pt-abstract', uClass: 'u-abstract', label: 'ABS' }
 };
 
-/* ── escape html ── */
+/* Helper: Escape HTML to prevent XSS */
 function esc(s) {
   return String(s)
     .replace(/&/g,'&amp;').replace(/</g,'&lt;')
     .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-/* ── public API: call this from your chat integration ── */
+/* ── Public Message Interface ── */
 function addMessage(platform, username, text, badge) {
-  if (!pd[platform]) return;
+  if (!platformData[platform]) return;
   emptyState.style.display = 'none';
 
   counts[platform]++;
   document.getElementById('cnt-' + platform).textContent = counts[platform];
 
-  const p    = pd[platform];
+  const p    = platformData[platform];
   const time = new Date().toTimeString().slice(0, 5);
 
   const badgeMap = { sub: 'badge-sub', mod: 'badge-mod', vip: 'badge-vip' };
@@ -303,17 +540,13 @@ function addMessage(platform, username, text, badge) {
   if (autoScroll) msgContainer.scrollTop = msgContainer.scrollHeight;
 }
 
-/* expose globally for OBS browser source / StreamElements injection */
-window.addMessage = addMessage;
-
-/* ── Streamer.bot WebSocket integration ── */
+/* ── Streamer.bot WebSocket ── */
 const SB_WS = 'ws://127.0.0.1:8080/';
 
 function connectStreamerBot() {
   const ws = new WebSocket(SB_WS);
 
   ws.onopen = () => {
-    console.log('[SB] connected');
     ws.send(JSON.stringify({
       request: 'Subscribe',
       events: {
@@ -329,105 +562,67 @@ function connectStreamerBot() {
     try {
       const data = JSON.parse(event.data);
       handleSBEvent(data);
-    } catch(e) {
-      console.warn('[SB] failed to parse message', e);
-    }
+    } catch(e) {}
   };
 
-  ws.onclose = () => {
-    console.log('[SB] disconnected — retrying in 5s');
-    setTimeout(connectStreamerBot, 5000);
-  };
-
-  ws.onerror = (e) => console.warn('[SB] error', e);
+  ws.onclose = () => setTimeout(connectStreamerBot, 5000);
 }
 
 function handleSBEvent(data) {
   const evt = data.event;
   if (!evt) return;
 
-  /* ── Twitch ── */
   if (evt.source === 'Twitch' && evt.type === 'ChatMessage') {
-    const msg  = data.data;
-    const user = msg.message.displayName;
-    const text = msg.message.message;
-    const badge = msg.message.subscriber ? 'sub'
-                : msg.message.moderator  ? 'mod'
-                : '';
-    addMessage('twitch', user, text, badge);
+    const m = data.data.message;
+    addMessage('twitch', m.displayName, m.message, m.subscriber ? 'sub' : m.moderator ? 'mod' : '');
   }
-
-  /* ── YouTube ── */
   if (evt.source === 'YouTube' && evt.type === 'Message') {
-    const msg  = data.data;
-    const user = msg.message.author;
-    const text = msg.message.message;
-    addMessage('youtube', user, text, '');
+    const m = data.data.message;
+    addMessage('youtube', m.author, m.message, '');
   }
-
-  /* ── Kick ── */
   if (evt.source === 'Kick' && evt.type === 'ChatMessage') {
-    const msg  = data.data;
-    const user = msg.message.displayName;
-    const text = msg.message.message;
-    const badge = msg.message.subscriber ? 'sub'
-                : msg.message.moderator  ? 'mod'
-                : '';
-    addMessage('kick', user, text, badge);
+    const m = data.data.message;
+    addMessage('kick', m.displayName, m.message, m.subscriber ? 'sub' : m.moderator ? 'mod' : '');
   }
 }
 
 connectStreamerBot();
 
-/* ── Abstract Chat (abstools.top) WebSocket integration ── */
+/* ── Abstract Chat WebSocket ── */
 const ABS_WS_URL = 'wss://abstools.top/api/ws?channel_id=fc9895d2-a15e-48ba-8b71-e41f6ff972d6';
 const ABS_SEEN   = new Set();
 
 function connectAbstract() {
   const ws = new WebSocket(ABS_WS_URL);
-
-  ws.onopen = () => console.log('[ABS] connected');
-
   ws.onmessage = (event) => {
     try {
       const data = JSON.parse(event.data);
-
-      /* initial history batch */
+      
       if (data.type === 'chat_history' && data.payload?.messages) {
         data.payload.messages.forEach(m => {
           if (!ABS_SEEN.has(m.id)) {
             ABS_SEEN.add(m.id);
-            const name = m.user_name || m.user_id || 'anon';
-            addMessage('abstract', name, m.text || '', '');
+            addMessage('abstract', m.user_name || 'anon', m.text || '', '');
           }
         });
       }
-
-      /* live new message */
+      
       if (data.type === 'chat_message' && data.payload) {
-        const m  = data.payload;
-        const id = m.id || (m.user_id + m.text);
-        if (!ABS_SEEN.has(id)) {
-          ABS_SEEN.add(id);
-          const name = m.user_name || m.user_id || 'anon';
-          addMessage('abstract', name, m.text || '', '');
+        const m = data.payload;
+        if (!ABS_SEEN.has(m.id)) {
+          ABS_SEEN.add(m.id);
+          addMessage('abstract', m.user_name || 'anon', m.text || '', '');
         }
       }
-
-    } catch(e) {
-      console.warn('[ABS] parse error', e);
-    }
+    } catch(e) {}
   };
-
-  ws.onclose = () => {
-    console.log('[ABS] disconnected — retrying in 5s');
-    setTimeout(connectAbstract, 5000);
-  };
-
-  ws.onerror = (e) => console.warn('[ABS] error', e);
+  ws.onclose = () => setTimeout(connectAbstract, 5000);
 }
 
 connectAbstract();
+
+// Global access for debugging/external triggers
+window.addMessage = addMessage;
 </script>
 </body>
 </html>
