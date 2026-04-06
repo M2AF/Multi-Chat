@@ -462,10 +462,45 @@
       <span class="live-badge">live</span>
     </div>
     <div class="header-left">
-      <div class="control-group">
-        <label for="bg-slider" class="control-label">BG</label>
-        <input type="range" id="bg-slider" min="0" max="1" step="0.01" value="1">
+      <div class="control-group" style="position:relative;">
+        <label class="control-label">BG</label>
+        <button id="color-swatch" onclick="toggleColorPicker()" title="Pick background color" style="
+          width:22px; height:14px; border-radius:3px; border:1px solid rgba(255,255,255,0.2);
+          background:#0e0e10; cursor:pointer; flex-shrink:0; padding:0;
+        "></button>
+        <input type="range" id="bg-alpha-slider" min="0" max="1" step="0.01" value="1">
         <span class="control-val" id="bg-val">100%</span>
+        <!-- Color picker popover -->
+        <div id="color-picker" style="display:none; position:absolute; top:calc(100% + 6px); left:0; z-index:1000;
+          background:#1a1a1d; border:1px solid rgba(255,255,255,0.12); border-radius:8px;
+          padding:12px; width:220px; box-shadow:0 8px 32px rgba(0,0,0,0.6);">
+          <!-- Color wheel canvas -->
+          <canvas id="color-wheel" width="196" height="196" style="border-radius:50%; cursor:crosshair; display:block;"></canvas>
+          <!-- Lightness slider -->
+          <div style="margin-top:10px;">
+            <div style="font-size:9px; font-family:var(--mono); color:var(--muted); margin-bottom:4px;">LIGHTNESS</div>
+            <input type="range" id="lightness-slider" min="0" max="100" value="8" style="width:100%; accent-color:var(--abstract);">
+          </div>
+          <!-- Hex input -->
+          <div style="margin-top:8px; display:flex; gap:6px; align-items:center;">
+            <div style="font-size:9px; font-family:var(--mono); color:var(--muted);">HEX</div>
+            <input type="text" id="hex-input" value="#0e0e10" style="
+              flex:1; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1);
+              color:var(--text); font-family:var(--mono); font-size:11px;
+              padding:3px 7px; border-radius:4px; outline:none;
+            ">
+            <button onclick="applyHex()" style="
+              background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.12);
+              color:var(--text); font-family:var(--mono); font-size:9px;
+              padding:3px 8px; border-radius:4px; cursor:pointer;
+            ">OK</button>
+          </div>
+          <!-- Presets -->
+          <div style="margin-top:10px;">
+            <div style="font-size:9px; font-family:var(--mono); color:var(--muted); margin-bottom:5px;">PRESETS</div>
+            <div style="display:flex; gap:5px; flex-wrap:wrap;" id="presets"></div>
+          </div>
+        </div>
       </div>
       <div class="control-group">
         <label for="font-slider" class="control-label">Size</label>
@@ -523,11 +558,110 @@ const msgContainer = document.getElementById('messages');
 const emptyState   = document.getElementById('empty');
 
 /* ── UI Handlers ── */
-document.getElementById('bg-slider').addEventListener('input', (e) => {
-  const val = e.target.value;
-  document.documentElement.style.setProperty('--bg-alpha', val);
-  document.getElementById('bg-val').textContent = Math.round(val * 100) + '%';
+/* ── Color Picker ── */
+let bgColor = { r: 14, g: 14, b: 16 };
+let bgAlpha = 1;
+
+function updateBg() {
+  const { r, g, b } = bgColor;
+  document.documentElement.style.setProperty('--bg',     `rgba(${r},${g},${b},${bgAlpha})`);
+  document.documentElement.style.setProperty('--surface', `rgba(${Math.min(r+10,255)},${Math.min(g+10,255)},${Math.min(b+10,255)},${bgAlpha})`);
+  document.getElementById('color-swatch').style.background = `rgba(${r},${g},${b},1)`;
+  document.getElementById('bg-val').textContent = Math.round(bgAlpha * 100) + '%';
+}
+
+document.getElementById('bg-alpha-slider').addEventListener('input', (e) => {
+  bgAlpha = parseFloat(e.target.value);
+  updateBg();
 });
+
+function toggleColorPicker() {
+  const picker = document.getElementById('color-picker');
+  if (picker.style.display === 'none') {
+    picker.style.display = 'block';
+    drawWheel();
+  } else {
+    picker.style.display = 'none';
+  }
+}
+
+// Close picker when clicking outside
+document.addEventListener('click', (e) => {
+  const picker = document.getElementById('color-picker');
+  const swatch = document.getElementById('color-swatch');
+  if (picker.style.display !== 'none' && !picker.contains(e.target) && e.target !== swatch) {
+    picker.style.display = 'none';
+  }
+});
+
+function drawWheel() {
+  const canvas = document.getElementById('color-wheel');
+  const ctx = canvas.getContext('2d');
+  const cx = canvas.width / 2, cy = canvas.height / 2, r = cx;
+  const lightness = parseInt(document.getElementById('lightness-slider').value);
+
+  for (let y = 0; y < canvas.height; y++) {
+    for (let x = 0; x < canvas.width; x++) {
+      const dx = x - cx, dy = y - cy;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      if (dist > r) continue;
+      const hue = (Math.atan2(dy, dx) * 180 / Math.PI + 360) % 360;
+      const sat = (dist / r) * 100;
+      ctx.fillStyle = `hsl(${hue},${sat}%,${lightness + (100-lightness) * (1 - dist/r) * 0.15}%)`;
+      ctx.fillRect(x, y, 1, 1);
+    }
+  }
+}
+
+document.getElementById('color-wheel').addEventListener('click', (e) => {
+  const canvas = document.getElementById('color-wheel');
+  const rect = canvas.getBoundingClientRect();
+  const x = (e.clientX - rect.left) * (canvas.width / rect.width);
+  const y = (e.clientY - rect.top) * (canvas.height / rect.height);
+  const ctx = canvas.getContext('2d');
+  const px = ctx.getImageData(Math.round(x), Math.round(y), 1, 1).data;
+  bgColor = { r: px[0], g: px[1], b: px[2] };
+  document.getElementById('hex-input').value = rgbToHex(px[0], px[1], px[2]);
+  updateBg();
+});
+
+document.getElementById('lightness-slider').addEventListener('input', () => drawWheel());
+
+function rgbToHex(r, g, b) {
+  return '#' + [r,g,b].map(v => v.toString(16).padStart(2,'0')).join('');
+}
+
+function hexToRgb(hex) {
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  return isNaN(r) ? null : {r,g,b};
+}
+
+function applyHex() {
+  const rgb = hexToRgb(document.getElementById('hex-input').value);
+  if (rgb) { bgColor = rgb; updateBg(); }
+}
+
+document.getElementById('hex-input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') applyHex();
+});
+
+// Presets
+const presets = ['#0e0e10','#000000','#1a0a2e','#0a1628','#0d1f0d','#1a1a1a','#2d1b00','#1a0000','#ffffff'];
+const presetsEl = document.getElementById('presets');
+presets.forEach(hex => {
+  const btn = document.createElement('button');
+  btn.style.cssText = `width:22px;height:22px;border-radius:4px;border:1px solid rgba(255,255,255,0.15);background:${hex};cursor:pointer;padding:0;`;
+  btn.title = hex;
+  btn.onclick = () => {
+    const rgb = hexToRgb(hex);
+    if (rgb) { bgColor = rgb; document.getElementById('hex-input').value = hex; updateBg(); }
+  };
+  presetsEl.appendChild(btn);
+});
+
+updateBg();
 
 document.getElementById('font-slider').addEventListener('input', (e) => {
   const val = e.target.value;
