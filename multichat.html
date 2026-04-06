@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CriptoEjesus — MultiChat</title>
+<script src="config.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --twitch: #9147ff;
+    --youtube: #ff0000;
+    --kick: #53fc18;
+    --bg: #0e0e10;
+    --surface: #18181b;
+    --surface2: #1f1f23;
+    --border: rgba(255,255,255,0.07);
+    --text: #efeff1;
+    --muted: #adadb8;
+    --font: 'IBM Plex Sans', sans-serif;
+    --mono: 'IBM Plex Mono', monospace;
+  }
+
+  html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--font); overflow: hidden; }
+
+  #app { display: flex; flex-direction: column; height: 100vh; }
+
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 12px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .header-left { display: flex; align-items: center; gap: 8px; }
+  .logo { font-family: var(--mono); font-size: 13px; font-weight: 500; color: var(--text); letter-spacing: 0.03em; }
+  .live-badge {
+    font-size: 10px; font-weight: 600; letter-spacing: 0.08em;
+    background: #eb0400; color: #fff;
+    padding: 2px 6px; border-radius: 3px;
+    text-transform: uppercase;
+  }
+
+  .filter-tabs { display: flex; gap: 4px; }
+  .tab {
+    font-size: 11px; font-weight: 500; padding: 3px 8px;
+    border-radius: 4px; border: 1px solid transparent;
+    cursor: pointer; transition: all 0.15s; background: none;
+    color: var(--muted); font-family: var(--font);
+    display: flex; align-items: center; gap: 5px;
+  }
+  .tab.active-all    { background: rgba(255,255,255,0.08); color: var(--text); border-color: var(--border); }
+  .tab.active-twitch { background: rgba(145,71,255,0.15); color: var(--twitch); border-color: rgba(145,71,255,0.3); }
+  .tab.active-youtube{ background: rgba(255,0,0,0.12); color: #ff4444; border-color: rgba(255,0,0,0.25); }
+  .tab.active-kick   { background: rgba(83,252,24,0.1); color: var(--kick); border-color: rgba(83,252,24,0.25); }
+  .tab:hover:not([class*="active"]) { background: rgba(255,255,255,0.04); color: var(--text); }
+
+  #messages {
+    flex: 1; overflow-y: auto; padding: 6px 0;
+    scroll-behavior: smooth;
+  }
+  #messages::-webkit-scrollbar { width: 4px; }
+  #messages::-webkit-scrollbar-track { background: transparent; }
+  #messages::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+
+  .msg {
+    display: flex; align-items: flex-start; gap: 8px;
+    padding: 5px 12px; transition: background 0.1s;
+  }
+  .msg:hover { background: rgba(255,255,255,0.03); }
+  .platform-hidden { display: none !important; }
+
+  .username { font-size: 12px; font-weight: 600; white-space: nowrap; }
+  .u-twitch  { color: var(--twitch); }
+  .u-youtube { color: #ff4444; }
+  .u-kick    { color: var(--kick); }
+
+  .timestamp { font-size: 10px; color: rgba(173,173,184,0.45); font-family: var(--mono); }
+
+  .badge { font-size: 9px; font-weight: 600; letter-spacing: 0.05em; padding: 1px 4px; border-radius: 2px; text-transform: uppercase; }
+  .badge-sub { background: rgba(145,71,255,0.2); color: #c08fff; }
+  .badge-mod { background: rgba(83,252,24,0.12); color: #7dff6b; }
+  .badge-vip { background: rgba(255,180,0,0.15); color: #ffcc44; }
+
+  .msg-body  { flex: 1; min-width: 0; }
+  .msg-header{ display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
+  .msg-text  { font-size: 13px; color: var(--text); line-height: 1.5; margin-top: 1px; word-break: break-word; }
+
+  .platform-tag {
+    font-size: 9px; font-family: var(--mono); font-weight: 500;
+    padding: 1px 4px; border-radius: 2px; letter-spacing: 0.04em;
+    text-transform: uppercase; flex-shrink: 0; margin-top: 3px;
+  }
+  .pt-twitch  { background: rgba(145,71,255,0.15); color: #c08fff; }
+  .pt-youtube { background: rgba(255,0,0,0.12); color: #ff8080; }
+  .pt-kick    { background: rgba(83,252,24,0.1); color: #7dff6b; }
+
+  .links-bar {
+    display: flex; gap: 6px; padding: 6px 12px;
+    background: rgba(0,0,0,0.2);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .stream-link {
+    font-size: 10px; font-family: var(--mono);
+    padding: 2px 7px; border-radius: 3px;
+    text-decoration: none; font-weight: 500;
+    transition: opacity 0.15s;
+  }
+  .stream-link:hover { opacity: 0.75; }
+  .sl-twitch  { background: rgba(145,71,255,0.15); color: #c08fff; }
+  .sl-youtube { background: rgba(255,0,0,0.12); color: #ff8080; }
+  .sl-kick    { background: rgba(83,252,24,0.1); color: #7dff6b; }
+
+  footer {
+    padding: 8px 12px;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    flex-shrink: 0;
+  }
+  .counters { display: flex; gap: 12px; }
+  .counter { font-size: 11px; color: var(--muted); font-family: var(--mono); display: flex; align-items: center; gap: 4px; }
+  .counter-num { font-weight: 500; color: var(--text); }
+
+  .auto-scroll-btn {
+    font-size: 11px; font-weight: 500; padding: 3px 8px;
+    border-radius: 4px; border: 1px solid var(--border);
+    background: none; color: var(--muted); cursor: pointer;
+    font-family: var(--font); transition: all 0.15s;
+  }
+  .auto-scroll-btn.on { border-color: rgba(145,71,255,0.4); color: var(--twitch); background: rgba(145,71,255,0.08); }
+  .auto-scroll-btn:hover { background: rgba(255,255,255,0.05); }
+
+  .empty-state {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    height: 100%; gap: 8px; color: var(--muted); padding: 2rem;
+  }
+  .empty-state p { font-size: 13px; text-align: center; line-height: 1.7; }
+  .empty-state code { font-family: var(--mono); font-size: 11px; background: var(--surface2); padding: 2px 6px; border-radius: 3px; color: #c08fff; }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <header>
+    <div class="header-left">
+      <span class="logo" id="ui-logo">criptoejesus</span>
+      <span class="live-badge">live</span>
+    </div>
+    <div class="filter-tabs">
+      <button class="tab active-all" onclick="setFilter('all',this)">All</button>
+      <button class="tab" onclick="setFilter('twitch',this)">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="#9147ff"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/></svg>
+        Twitch
+      </button>
+      <button class="tab" onclick="setFilter('youtube',this)">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="#ff4444"><path d="M23.495 6.205a3.007 3.007 0 0 0-2.088-2.088c-1.87-.501-9.396-.501-9.396-.501s-7.507-.01-9.396.501A3.007 3.007 0 0 0 .527 6.205a31.247 31.247 0 0 0-.522 5.805 31.247 31.247 0 0 0 .522 5.783 3.007 3.007 0 0 0 2.088 2.088c1.868.502 9.396.502 9.396.502s7.506 0 9.396-.502a3.007 3.007 0 0 0 2.088-2.088 31.247 31.247 0 0 0 .5-5.783 31.247 31.247 0 0 0-.5-5.805zM9.609 15.601V8.408l6.264 3.602z"/></svg>
+        YouTube
+      </button>
+      <button class="tab" onclick="setFilter('kick',this)">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="#53fc18"><path d="M3 2h4v8l5-8h5l-5 8 5 8h-5l-5-8v8H3z"/></svg>
+        Kick
+      </button>
+    </div>
+  </header>
+
+  <div class="links-bar" id="ui-links">
+    </div>
+
+  <div id="messages">
+    <div class="empty-state" id="empty">
+      <p>Waiting for messages…<br><br>
+      Inject chat via JavaScript:<br>
+      <code>addMessage('twitch','Username','hello!','sub')</code><br><br>
+      Platform values: <code>twitch</code> · <code>youtube</code> · <code>kick</code><br>
+      Badge values: <code>sub</code> · <code>mod</code> · <code>vip</code> · <code></code> (none)</p>
+    </div>
+  </div>
+
+  <footer>
+    <div class="counters">
+      <span class="counter">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="#9147ff"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/></svg>
+        <span class="counter-num" id="cnt-twitch">0</span>
+      </span>
+      <span class="counter">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="#ff4444"><path d="M23.495 6.205a3.007 3.007 0 0 0-2.088-2.088c-1.87-.501-9.396-.501-9.396-.501s-7.507-.01-9.396.501A3.007 3.007 0 0 0 .527 6.205a31.247 31.247 0 0 0-.522 5.805 31.247 31.247 0 0 0 .522 5.783 3.007 3.007 0 0 0 2.088 2.088c1.868.502 9.396.502 9.396.502s7.506 0 9.396-.502a3.007 3.007 0 0 0 2.088-2.088 31.247 31.247 0 0 0 .5-5.783 31.247 31.247 0 0 0-.5-5.805zM9.609 15.601V8.408l6.264 3.602z"/></svg>
+        <span class="counter-num" id="cnt-youtube">0</span>
+      </span>
+      <span class="counter">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="#53fc18"><path d="M3 2h4v8l5-8h5l-5 8 5 8h-5l-5-8v8H3z"/></svg>
+        <span class="counter-num" id="cnt-kick">0</span>
+      </span>
+    </div>
+    <button class="auto-scroll-btn on" id="scroll-btn" onclick="toggleAutoScroll()">auto-scroll on</button>
+  </footer>
+
+</div>
+
+<script>
+/* ── initialize UI from config ── */
+document.getElementById('ui-logo').textContent = CONFIG.BRAND_NAME;
+const linksBar = document.getElementById('ui-links');
+Object.entries(CONFIG.CHANNELS).forEach(([platform, url]) => {
+  const a = document.createElement('a');
+  a.className = `stream-link sl-${platform}`;
+  a.href = url;
+  a.target = "_blank";
+  a.textContent = url.replace('https://', '');
+  linksBar.appendChild(a);
+});
+
+/* ── state ── */
+let filter = 'all';
+let autoScroll = CONFIG.AUTO_SCROLL_DEFAULT;
+let counts = { twitch: 0, youtube: 0, kick: 0 };
+
+const msgContainer = document.getElementById('messages');
+const emptyState   = document.getElementById('empty');
+
+/* ── filter ── */
+function setFilter(f, btn) {
+  filter = f;
+  document.querySelectorAll('.tab').forEach(t => { t.className = 'tab'; });
+  btn.className = 'tab active-' + f;
+  document.querySelectorAll('.msg').forEach(m => {
+    m.classList.toggle('platform-hidden', f !== 'all' && m.dataset.platform !== f);
+  });
+}
+
+/* ── auto-scroll ── */
+function toggleAutoScroll() {
+  autoScroll = !autoScroll;
+  const btn = document.getElementById('scroll-btn');
+  btn.textContent = 'auto-scroll ' + (autoScroll ? 'on' : 'off');
+  btn.classList.toggle('on', autoScroll);
+}
+
+msgContainer.addEventListener('scroll', () => {
+  const atBottom = msgContainer.scrollHeight - msgContainer.scrollTop - msgContainer.clientHeight < 40;
+  if (!atBottom && autoScroll) {
+    autoScroll = false;
+    const btn = document.getElementById('scroll-btn');
+    btn.textContent = 'auto-scroll off';
+    btn.classList.remove('on');
+  }
+});
+
+/* ── platform config ── */
+const pd = {
+  twitch:  { tag: 'pt-twitch',  uClass: 'u-twitch',  label: 'TW' },
+  youtube: { tag: 'pt-youtube', uClass: 'u-youtube',  label: 'YT' },
+  kick:    { tag: 'pt-kick',    uClass: 'u-kick',     label: 'KC' }
+};
+
+/* ── escape html ── */
+function esc(s) {
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* ── public API: call this from your chat integration ── */
+function addMessage(platform, username, text, badge) {
+  if (!pd[platform]) return;
+  emptyState.style.display = 'none';
+
+  counts[platform]++;
+  document.getElementById('cnt-' + platform).textContent = counts[platform];
+
+  const p    = pd[platform];
+  const time = new Date().toTimeString().slice(0, 5);
+
+  const badgeMap = { sub: 'badge-sub', mod: 'badge-mod', vip: 'badge-vip' };
+  const badgeHtml = badge && badgeMap[badge]
+    ? `<span class="badge ${badgeMap[badge]}">${esc(badge)}</span>` : '';
+
+  const div = document.createElement('div');
+  div.className = 'msg' + (filter !== 'all' && filter !== platform ? ' platform-hidden' : '');
+  div.dataset.platform = platform;
+  div.innerHTML = `
+    <span class="platform-tag ${p.tag}">${p.label}</span>
+    <div class="msg-body">
+      <div class="msg-header">
+        <span class="username ${p.uClass}">${esc(username)}</span>
+        ${badgeHtml}
+        <span class="timestamp">${time}</span>
+      </div>
+      <div class="msg-text">${esc(text)}</div>
+    </div>`;
+
+  msgContainer.appendChild(div);
+  if (autoScroll) msgContainer.scrollTop = msgContainer.scrollHeight;
+}
+
+window.addMessage = addMessage;
+
+/* ── Streamer.bot WebSocket integration ── */
+function connectStreamerBot() {
+  const ws = new WebSocket(CONFIG.SB_WS_URL);
+
+  ws.onopen = () => {
+    console.log('[SB] connected');
+    ws.send(JSON.stringify({
+      request: 'Subscribe',
+      events: {
+        Twitch:  ['ChatMessage'],
+        YouTube: ['Message'],
+        Kick:    ['ChatMessage']
+      },
+      id: 'multichat-sub'
+    }));
+  };
+
+  ws.onmessage = (event) => {
+    try {
+      const data = JSON.parse(event.data);
+      handleSBEvent(data);
+    } catch(e) {
+      console.warn('[SB] failed to parse message', e);
+    }
+  };
+
+  ws.onclose = () => {
+    console.log('[SB] disconnected — retrying in 5s');
+    setTimeout(connectStreamerBot, 5000);
+  };
+
+  ws.onerror = (e) => console.warn('[SB] error', e);
+}
+
+function handleSBEvent(data) {
+  const evt = data.event;
+  if (!evt) return;
+
+  if (evt.source === 'Twitch' && evt.type === 'ChatMessage') {
+    const msg  = data.data;
+    const user = msg.message.displayName;
+    const text = msg.message.message;
+    const badge = msg.message.subscriber ? 'sub'
+                : msg.message.moderator  ? 'mod'
+                : '';
+    addMessage('twitch', user, text, badge);
+  }
+
+  if (evt.source === 'YouTube' && evt.type === 'Message') {
+    const msg  = data.data;
+    const user = msg.message.author;
+    const text = msg.message.message;
+    addMessage('youtube', user, text, '');
+  }
+
+  if (evt.source === 'Kick' && evt.type === 'ChatMessage') {
+    const msg  = data.data;
+    const user = msg.message.displayName;
+    const text = msg.message.message;
+    const badge = msg.message.subscriber ? 'sub'
+                : msg.message.moderator  ? 'mod'
+                : '';
+    addMessage('kick', user, text, badge);
+  }
+}
+
+connectStreamerBot();
+</script>
+</body>
+</html>

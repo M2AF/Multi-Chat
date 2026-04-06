@@ -1,0 +1,18 @@
+# Windows System Files
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*.log
+
+# Personal Configuration (Important!)
+config.js
+.env
+
+# Dependencies (if you add them later)
+node_modules/
+dist/
