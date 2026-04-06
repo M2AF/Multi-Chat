@@ -59,22 +59,26 @@
 
   /* ── Header ── */
   header {
-    display: flex; 
-    align-items: center; 
-    justify-content: space-between;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
     padding: 8px 12px;
     background: var(--surface);
     border-bottom: 1px solid var(--border);
     flex-shrink: 0;
-    gap: 12px;
-    flex-wrap: wrap;
+    gap: 6px;
   }
 
-  .header-left { 
-    display: flex; 
-    align-items: center; 
-    gap: 8px; 
-    flex-wrap: wrap; 
+  .header-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .header-left {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
   }
 
   .logo { 
@@ -98,35 +102,32 @@
 
   /* ── Control Sliders ── */
   .control-group {
-    display: flex; 
-    align-items: center; 
-    gap: 6px; 
-    background: rgba(255, 255, 255, 0.05); 
-    padding: 2px 8px; 
-    border-radius: 4px; 
-    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
 
-  .control-label { 
-    font-size: 9px; 
-    font-family: var(--mono); 
-    color: var(--muted); 
-    text-transform: uppercase; 
+  .control-label {
+    font-size: 9px;
+    font-family: var(--mono);
+    color: var(--muted);
+    text-transform: uppercase;
+    min-width: 26px;
   }
 
-  .control-val { 
-    font-size: 9px; 
-    font-family: var(--mono); 
-    color: var(--abstract); 
-    min-width: 28px; 
-    text-align: right; 
+  .control-val {
+    font-size: 9px;
+    font-family: var(--mono);
+    color: var(--abstract);
+    min-width: 32px;
+    text-align: right;
   }
-  
-  input[type="range"] { 
-    width: 45px; 
-    height: 4px; 
-    accent-color: var(--abstract); 
-    cursor: pointer; 
+
+  input[type="range"] {
+    flex: 1;
+    height: 4px;
+    accent-color: var(--abstract);
+    cursor: pointer;
   }
 
   /* ── Filter Tabs ── */
@@ -161,6 +162,38 @@
     background: rgba(255, 255, 255, 0.04); 
     color: var(--text); 
   }
+
+  .tab.icon-tab {
+    padding: 4px 6px;
+    line-height: 0;
+  }
+
+  /* ── Footer Counter Buttons ── */
+  .counter-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    color: var(--muted);
+    font-family: var(--mono);
+    background: none;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    padding: 3px 7px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .counter-btn:hover:not([class*="active"]) {
+    background: rgba(255,255,255,0.05);
+    color: var(--text);
+  }
+
+  .counter-btn.active-all     { background: rgba(255,255,255,0.08); color: var(--text); border-color: var(--border); }
+  .counter-btn.active-twitch  { background: rgba(145,71,255,0.15); color: var(--twitch); border-color: rgba(145,71,255,0.3); }
+  .counter-btn.active-youtube { background: rgba(255,0,0,0.12); color: #ff4444; border-color: rgba(255,0,0,0.25); }
+  .counter-btn.active-kick    { background: rgba(83,252,24,0.1); color: var(--kick); border-color: rgba(83,252,24,0.25); }
+  .counter-btn.active-abstract{ background: rgba(0,255,163,0.1); color: var(--abstract); border-color: rgba(0,255,163,0.25); }
 
   /* ── Messages Area ── */
   #messages {
@@ -202,7 +235,8 @@
   .username { 
     font-size: calc(12px * var(--font-scale)); 
     font-weight: 600; 
-    white-space: nowrap; 
+    overflow-wrap: anywhere;
+    word-break: break-word;
   }
   
   .u-twitch    { color: var(--twitch); }
@@ -231,7 +265,8 @@
 
   .msg-body  { 
     flex: 1; 
-    min-width: 0; 
+    min-width: 0;
+    overflow: hidden;
   }
   
   .msg-header { 
@@ -246,7 +281,8 @@
     color: var(--text); 
     line-height: 1.5; 
     margin-top: 1px; 
-    word-break: break-word; 
+    word-break: break-word;
+    overflow-wrap: anywhere;
   }
 
   .platform-tag {
@@ -357,6 +393,46 @@
     background: rgba(255, 255, 255, 0.05); 
   }
 
+  /* ── UI Toggle Button ── */
+  .toggle-ui-btn {
+    position: fixed;
+    top: 6px;
+    right: 6px;
+    z-index: 999;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 9px;
+    padding: 3px 7px;
+    border-radius: 3px;
+    cursor: pointer;
+    letter-spacing: 0.05em;
+    transition: opacity 0.2s;
+    opacity: 0.35;
+  }
+
+  .toggle-ui-btn:hover {
+    opacity: 1;
+    color: var(--text);
+    background: rgba(255,255,255,0.12);
+  }
+
+  /* When hidden, collapse header, links bar, and footer */
+  .ui-hidden header,
+  .ui-hidden .links-bar,
+  .ui-hidden footer {
+    display: none !important;
+  }
+
+  /* Button fades out in hidden mode, reappears on hover */
+  .ui-hidden .toggle-ui-btn {
+    opacity: 0;
+  }
+  .ui-hidden .toggle-ui-btn:hover {
+    opacity: 1;
+  }
+
   .empty-state {
     display: flex; 
     flex-direction: column; 
@@ -378,50 +454,32 @@
 <body>
 <div id="app">
 
+  <button class="toggle-ui-btn" onclick="toggleUI()" title="Hide/show UI">UI</button>
+
   <header>
-    <div class="header-left">
+    <div class="header-top">
       <span class="logo">criptoejesus</span>
       <span class="live-badge">live</span>
-      
+    </div>
+    <div class="header-left">
       <div class="control-group">
         <label for="bg-slider" class="control-label">BG</label>
         <input type="range" id="bg-slider" min="0" max="1" step="0.01" value="1">
         <span class="control-val" id="bg-val">100%</span>
       </div>
-
       <div class="control-group">
         <label for="font-slider" class="control-label">Size</label>
         <input type="range" id="font-slider" min="0.5" max="2" step="0.05" value="1">
         <span class="control-val" id="font-val">100%</span>
       </div>
     </div>
-
-    <div class="filter-tabs">
-      <button class="tab active-all" onclick="setFilter('all',this)">All</button>
-      <button class="tab" onclick="setFilter('twitch',this)">
-        <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/></svg>
-        Twitch
-      </button>
-      <button class="tab" onclick="setFilter('youtube',this)">
-        <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M23.495 6.205a3.007 3.007 0 0 0-2.088-2.088c-1.87-.501-9.396-.501-9.396-.501s-7.507-.01-9.396.501A3.007 3.007 0 0 0 .527 6.205a31.247 31.247 0 0 0-.522 5.805 31.247 31.247 0 0 0 .522 5.783 3.007 3.007 0 0 0 2.088 2.088c1.868.502 9.396.502 9.396.502s7.506 0 9.396-.502a3.007 3.007 0 0 0 2.088-2.088 31.247 31.247 0 0 0 .5-5.783 31.247 31.247 0 0 0-.5-5.805zM9.609 15.601V8.408l6.264 3.602z"/></svg>
-        YouTube
-      </button>
-      <button class="tab" onclick="setFilter('kick',this)">
-        <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M3 2h4v8l5-8h5l-5 8 5 8h-5l-5-8v8H3z"/></svg>
-        Kick
-      </button>
-      <button class="tab" onclick="setFilter('abstract',this)">
-        <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/></svg>
-        Abstract
-      </button>
-    </div>
   </header>
 
   <div class="links-bar">
-    <a class="stream-link sl-twitch"    href="https://twitch.tv/criptoejesus"    target="_blank">twitch.tv/criptoejesus</a>
-    <a class="stream-link sl-youtube"   href="https://youtube.com/@criptoejesus" target="_blank">youtube/@criptoejesus</a>
-    <a class="stream-link sl-kick"      href="https://kick.com/criptoejesus"     target="_blank">kick.com/criptoejesus</a>
-    <a class="stream-link sl-abstract"  href="https://abstools.top/criptoejesus" target="_blank">abstools.top/criptoejesus</a>
+    <a class="stream-link sl-twitch"    href="https://twitch.tv/criptoejesus"    target="_blank">Twitch</a>
+    <a class="stream-link sl-youtube"   href="https://youtube.com/@criptoejesus" target="_blank">YouTube</a>
+    <a class="stream-link sl-kick"      href="https://kick.com/criptoejesus"     target="_blank">Kick</a>
+    <a class="stream-link sl-abstract"  href="https://portal.abs.xyz/stream/criptoejesus" target="_blank">Abstract</a>
   </div>
 
   <div id="messages">
@@ -432,12 +490,25 @@
 
   <footer>
     <div class="counters">
-      <span class="counter">TW: <span class="counter-num" id="cnt-twitch">0</span></span>
-      <span class="counter">YT: <span class="counter-num" id="cnt-youtube">0</span></span>
-      <span class="counter">KC: <span class="counter-num" id="cnt-kick">0</span></span>
-      <span class="counter">ABS: <span class="counter-num" id="cnt-abstract">0</span></span>
+      <button class="counter-btn active-all" id="fbtn-all" onclick="setFilter('all', this)" data-filter="all" title="All platforms">All</button>
+      <button class="counter-btn" id="fbtn-twitch" onclick="setFilter('twitch', this)" data-filter="twitch" title="Twitch only">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/></svg>
+        <span id="cnt-twitch">0</span>
+      </button>
+      <button class="counter-btn" id="fbtn-youtube" onclick="setFilter('youtube', this)" data-filter="youtube" title="YouTube only">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0"><path d="M23.495 6.205a3.007 3.007 0 0 0-2.088-2.088c-1.87-.501-9.396-.501-9.396-.501s-7.507-.01-9.396.501A3.007 3.007 0 0 0 .527 6.205a31.247 31.247 0 0 0-.522 5.805 31.247 31.247 0 0 0 .522 5.783 3.007 3.007 0 0 0 2.088 2.088c1.868.502 9.396.502 9.396.502s7.506 0 9.396-.502a3.007 3.007 0 0 0 2.088-2.088 31.247 31.247 0 0 0 .5-5.783 31.247 31.247 0 0 0-.5-5.805zM9.609 15.601V8.408l6.264 3.602z"/></svg>
+        <span id="cnt-youtube">0</span>
+      </button>
+      <button class="counter-btn" id="fbtn-kick" onclick="setFilter('kick', this)" data-filter="kick" title="Kick only">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0"><path d="M3 2h4v8l5-8h5l-5 8 5 8h-5l-5-8v8H3z"/></svg>
+        <span id="cnt-kick">0</span>
+      </button>
+      <button class="counter-btn" id="fbtn-abstract" onclick="setFilter('abstract', this)" data-filter="abstract" title="Abstract only">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0"><path d="M12 2L3 7v10l9 5 9-5V7L12 2zm0 2.18L19 8.1v7.8l-7 3.92-7-3.92V8.1l7-3.92z"/></svg>
+        <span id="cnt-abstract">0</span>
+      </button>
     </div>
-    <button class="auto-scroll-btn on" id="scroll-btn" onclick="toggleAutoScroll()">auto-scroll on</button>
+    <button class="auto-scroll-btn on" id="scroll-btn" onclick="toggleAutoScroll()">⬆️⬇️</button>
   </footer>
 
 </div>
@@ -467,8 +538,13 @@ document.getElementById('font-slider').addEventListener('input', (e) => {
 /* ── Filtering ── */
 function setFilter(f, btn) {
   filter = f;
-  document.querySelectorAll('.tab').forEach(t => { t.className = 'tab'; });
-  btn.className = 'tab active-' + f;
+  // Update footer counter buttons
+  document.querySelectorAll('.counter-btn').forEach(b => {
+    b.classList.remove('active-all','active-twitch','active-youtube','active-kick','active-abstract');
+  });
+  const fbtn = document.getElementById('fbtn-' + f);
+  if (fbtn) fbtn.classList.add('active-' + f);
+  // Filter messages
   document.querySelectorAll('.msg').forEach(m => {
     m.classList.toggle('platform-hidden', f !== 'all' && m.dataset.platform !== f);
   });
@@ -476,21 +552,10 @@ function setFilter(f, btn) {
 
 /* ── Scrolling Logic ── */
 function toggleAutoScroll() {
-  autoScroll = !autoScroll;
-  const btn = document.getElementById('scroll-btn');
-  btn.textContent = 'auto-scroll ' + (autoScroll ? 'on' : 'off');
-  btn.classList.toggle('on', autoScroll);
+  // Auto-scroll locked on
 }
 
-msgContainer.addEventListener('scroll', () => {
-  const atBottom = msgContainer.scrollHeight - msgContainer.scrollTop - msgContainer.clientHeight < 40;
-  if (!atBottom && autoScroll) {
-    autoScroll = false;
-    const btn = document.getElementById('scroll-btn');
-    btn.textContent = 'auto-scroll off';
-    btn.classList.remove('on');
-  }
-});
+// Auto-scroll is always on — scroll listener removed
 
 /* ── Platform UI Configuration ── */
 const platformData = {
@@ -576,13 +641,40 @@ function handleSBEvent(data) {
     const m = data.data.message;
     addMessage('twitch', m.displayName, m.message, m.subscriber ? 'sub' : m.moderator ? 'mod' : '');
   }
+  
   if (evt.source === 'YouTube' && evt.type === 'Message') {
     const m = data.data.message;
     addMessage('youtube', m.author, m.message, '');
   }
+  
   if (evt.source === 'Kick' && evt.type === 'ChatMessage') {
-    const m = data.data.message;
-    addMessage('kick', m.displayName, m.message, m.subscriber ? 'sub' : m.moderator ? 'mod' : '');
+    // Streamer.bot nests Kick data inside data.data.message
+    const d = data.data?.message || data.data || {};
+
+    const username =
+      d.user?.login ||
+      d.user?.name ||
+      d.user?.username ||
+      d.sender?.login ||
+      d.sender?.username ||
+      'Kick User';
+
+    let text = '';
+    if (typeof d.text === 'string' && d.text) {
+      text = d.text;
+    } else if (Array.isArray(d.parts) && d.parts.length) {
+      text = d.parts.map(p => p.text || '').join('');
+    } else if (typeof d.content === 'string' && d.content) {
+      text = d.content;
+    } else {
+      text = '[DEBUG]: ' + JSON.stringify(d);
+    }
+
+    const isMod = d.user?.isModerator || d.user?.is_moderator || false;
+    const isSub = d.user?.isSubscribed || d.user?.is_subscriber || false;
+    const badge = isSub ? 'sub' : isMod ? 'mod' : '';
+
+    addMessage('kick', username, text, badge);
   }
 }
 
@@ -620,6 +712,10 @@ function connectAbstract() {
 }
 
 connectAbstract();
+
+function toggleUI() {
+  document.getElementById('app').classList.toggle('ui-hidden');
+}
 
 // Global access for debugging/external triggers
 window.addMessage = addMessage;
