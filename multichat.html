@@ -194,6 +194,7 @@
   .counter-btn.active-youtube { background: rgba(255,0,0,0.12); color: #ff4444; border-color: rgba(255,0,0,0.25); }
   .counter-btn.active-kick    { background: rgba(83,252,24,0.1); color: var(--kick); border-color: rgba(83,252,24,0.25); }
   .counter-btn.active-abstract{ background: rgba(0,255,163,0.1); color: var(--abstract); border-color: rgba(0,255,163,0.25); }
+  .counter-btn.active-discord { background: rgba(114,137,218,0.15); color: #7289da; border-color: rgba(114,137,218,0.3); }
 
   /* ── Messages Area ── */
   #messages {
@@ -243,6 +244,7 @@
   .u-youtube   { color: #ff4444; }
   .u-kick      { color: var(--kick); }
   .u-abstract  { color: var(--abstract); }
+  .u-discord   { color: #7289da; }
 
   .timestamp { 
     font-size: calc(10px * var(--font-scale)); 
@@ -301,6 +303,7 @@
   .pt-youtube  { background: rgba(255, 0, 0, 0.12); color: #ff8080; }
   .pt-kick     { background: rgba(83, 252, 24, 0.1); color: #7dff6b; }
   .pt-abstract { background: rgba(0, 255, 163, 0.1); color: #00ffa3; }
+  .pt-discord  { background: rgba(114, 137, 218, 0.15); color: #7289da; }
 
   /* ── Links Bar ── */
   .links-bar {
@@ -542,6 +545,10 @@
         <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0"><path d="M12 2L3 7v10l9 5 9-5V7L12 2zm0 2.18L19 8.1v7.8l-7 3.92-7-3.92V8.1l7-3.92z"/></svg>
         <span id="cnt-abstract">0</span>
       </button>
+      <button class="counter-btn" id="fbtn-discord" onclick="setFilter('discord', this)" data-filter="discord" title="Discord only">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057c.002.022.015.045.036.057a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .036-.057c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
+        <span id="cnt-discord">0</span>
+      </button>
     </div>
     <button class="auto-scroll-btn on" id="scroll-btn" onclick="toggleAutoScroll()">⬆️⬇️</button>
   </footer>
@@ -553,7 +560,7 @@
 /* ── State Management ── */
 let filter = 'all';
 let autoScroll = true;
-let counts = { twitch: 0, youtube: 0, kick: 0, abstract: 0 };
+let counts = { twitch: 0, youtube: 0, kick: 0, abstract: 0, discord: 0 };
 
 const msgContainer = document.getElementById('messages');
 const emptyState   = document.getElementById('empty');
@@ -708,7 +715,7 @@ function setFilter(f, btn) {
   filter = f;
   // Update footer counter buttons
   document.querySelectorAll('.counter-btn').forEach(b => {
-    b.classList.remove('active-all','active-twitch','active-youtube','active-kick','active-abstract');
+    b.classList.remove('active-all','active-twitch','active-youtube','active-kick','active-abstract','active-discord');
   });
   const fbtn = document.getElementById('fbtn-' + f);
   if (fbtn) fbtn.classList.add('active-' + f);
@@ -730,7 +737,8 @@ const platformData = {
   twitch:   { tag: 'pt-twitch',   uClass: 'u-twitch',   label: 'TW' },
   youtube:  { tag: 'pt-youtube',  uClass: 'u-youtube',  label: 'YT' },
   kick:     { tag: 'pt-kick',     uClass: 'u-kick',     label: 'KC' },
-  abstract: { tag: 'pt-abstract', uClass: 'u-abstract', label: 'ABS' }
+  abstract: { tag: 'pt-abstract', uClass: 'u-abstract', label: 'ABS' },
+  discord:  { tag: 'pt-discord',  uClass: 'u-discord',  label: 'DC' }
 };
 
 /* Helper: Escape HTML to prevent XSS */
@@ -880,6 +888,28 @@ function connectAbstract() {
 }
 
 connectAbstract();
+
+/* ── Discord Bridge WebSocket ── */
+function connectDiscord() {
+  const url = (typeof CONFIG !== 'undefined' && CONFIG.DISCORD_WS_URL) || 'ws://127.0.0.1:8081/';
+  const ws = new WebSocket(url);
+
+  ws.onopen = () => console.log('Discord bridge connected');
+
+  ws.onmessage = (event) => {
+    try {
+      const d = JSON.parse(event.data);
+      if (d.platform === 'discord' && d.username && d.text) {
+        addMessage('discord', d.username, d.text, '');
+      }
+    } catch(e) {}
+  };
+
+  ws.onclose = () => setTimeout(connectDiscord, 5000);
+  ws.onerror = () => {}; // Silently retry if bridge isn't running
+}
+
+connectDiscord();
 
 function toggleUI() {
   document.getElementById('app').classList.toggle('ui-hidden');

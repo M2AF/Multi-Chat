@@ -1,18 +1,11 @@
-# Windows System Files
-Thumbs.db
-desktop.ini
-$RECYCLE.BIN/
-
-# Editor / IDE
-.vscode/
-.idea/
-*.swp
-*.log
-
-# Personal Configuration (Important!)
+# Secret config — never commit this
 config.js
-.env
 
-# Dependencies (if you add them later)
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Node
 node_modules/
-dist/
+package-lock.json
+*.env
