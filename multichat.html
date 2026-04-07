@@ -548,6 +548,7 @@
 
 </div>
 
+<script src="config.js"></script>
 <script>
 /* ── State Management ── */
 let filter = 'all';
@@ -557,17 +558,34 @@ let counts = { twitch: 0, youtube: 0, kick: 0, abstract: 0 };
 const msgContainer = document.getElementById('messages');
 const emptyState   = document.getElementById('empty');
 
-/* ── UI Handlers ── */
+/* ── Settings Persistence ── */
+const SETTINGS_KEY = 'multichat_settings';
+
+function loadSettings() {
+  try {
+    return JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {};
+  } catch(e) { return {}; }
+}
+
+function saveSettings(patch) {
+  const current = loadSettings();
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify({ ...current, ...patch }));
+}
+
 /* ── Color Picker ── */
-let bgColor = { r: 14, g: 14, b: 16 };
-let bgAlpha = 1;
+const _s = loadSettings();
+const _d = (typeof CONFIG !== 'undefined' && CONFIG.DEFAULTS) || { bgColor: { r:14,g:14,b:16 }, bgAlpha: 1, fontScale: 1 };
+let bgColor = _s.bgColor || _d.bgColor;
+let bgAlpha = _s.bgAlpha !== undefined ? _s.bgAlpha : _d.bgAlpha;
 
 function updateBg() {
   const { r, g, b } = bgColor;
-  document.documentElement.style.setProperty('--bg',     `rgba(${r},${g},${b},${bgAlpha})`);
+  document.documentElement.style.setProperty('--bg',      `rgba(${r},${g},${b},${bgAlpha})`);
   document.documentElement.style.setProperty('--surface', `rgba(${Math.min(r+10,255)},${Math.min(g+10,255)},${Math.min(b+10,255)},${bgAlpha})`);
   document.getElementById('color-swatch').style.background = `rgba(${r},${g},${b},1)`;
   document.getElementById('bg-val').textContent = Math.round(bgAlpha * 100) + '%';
+  document.getElementById('bg-alpha-slider').value = bgAlpha;
+  saveSettings({ bgColor, bgAlpha });
 }
 
 document.getElementById('bg-alpha-slider').addEventListener('input', (e) => {
@@ -622,7 +640,7 @@ document.getElementById('color-wheel').addEventListener('click', (e) => {
   const px = ctx.getImageData(Math.round(x), Math.round(y), 1, 1).data;
   bgColor = { r: px[0], g: px[1], b: px[2] };
   document.getElementById('hex-input').value = rgbToHex(px[0], px[1], px[2]);
-  updateBg();
+  updateBg(); // updateBg already calls saveSettings
 });
 
 document.getElementById('lightness-slider').addEventListener('input', () => drawWheel());
@@ -640,7 +658,7 @@ function hexToRgb(hex) {
 
 function applyHex() {
   const rgb = hexToRgb(document.getElementById('hex-input').value);
-  if (rgb) { bgColor = rgb; updateBg(); }
+  if (rgb) { bgColor = rgb; updateBg(); } // updateBg calls saveSettings
 }
 
 document.getElementById('hex-input').addEventListener('keydown', (e) => {
@@ -656,17 +674,33 @@ presets.forEach(hex => {
   btn.title = hex;
   btn.onclick = () => {
     const rgb = hexToRgb(hex);
-    if (rgb) { bgColor = rgb; document.getElementById('hex-input').value = hex; updateBg(); }
+    if (rgb) { bgColor = rgb; document.getElementById('hex-input').value = hex; updateBg(); } // updateBg calls saveSettings
   };
   presetsEl.appendChild(btn);
 });
 
+// Restore hex display to match saved color
+document.getElementById('hex-input').value = rgbToHex(bgColor.r, bgColor.g, bgColor.b);
 updateBg();
 
+/* Restore saved font scale */
+(function() {
+  const saved = loadSettings();
+  const defScale = (typeof CONFIG !== 'undefined' && CONFIG.DEFAULTS?.fontScale) || 1;
+  const savedScale = saved.fontScale !== undefined ? saved.fontScale : defScale;
+  if (savedScale !== 1 || saved.fontScale !== undefined) {
+    const s = parseFloat(savedScale);
+    document.getElementById('font-slider').value = s;
+    document.documentElement.style.setProperty('--font-scale', s);
+    document.getElementById('font-val').textContent = Math.round(s * 100) + '%';
+  }
+})();
+
 document.getElementById('font-slider').addEventListener('input', (e) => {
-  const val = e.target.value;
+  const val = parseFloat(e.target.value);
   document.documentElement.style.setProperty('--font-scale', val);
   document.getElementById('font-val').textContent = Math.round(val * 100) + '%';
+  saveSettings({ fontScale: val });
 });
 
 /* ── Filtering ── */
@@ -740,7 +774,7 @@ function addMessage(platform, username, text, badge) {
 }
 
 /* ── Streamer.bot WebSocket ── */
-const SB_WS = 'ws://127.0.0.1:8080/';
+const SB_WS = (typeof CONFIG !== 'undefined' && CONFIG.SB_WS_URL) || 'ws://127.0.0.1:8080/';
 
 function connectStreamerBot() {
   const ws = new WebSocket(SB_WS);
@@ -815,7 +849,7 @@ function handleSBEvent(data) {
 connectStreamerBot();
 
 /* ── Abstract Chat WebSocket ── */
-const ABS_WS_URL = 'wss://abstools.top/api/ws?channel_id=fc9895d2-a15e-48ba-8b71-e41f6ff972d6';
+const ABS_WS_URL = (typeof CONFIG !== 'undefined' && CONFIG.ABS_WS_URL) || 'wss://abstools.top/api/ws?channel_id=fc9895d2-a15e-48ba-8b71-e41f6ff972d6';
 const ABS_SEEN   = new Set();
 
 function connectAbstract() {
