@@ -891,7 +891,7 @@ connectAbstract();
 
 /* ── Discord Bridge WebSocket ── */
 function connectDiscord() {
-  const url = (typeof CONFIG !== 'undefined' && CONFIG.DISCORD_WS_URL) || 'ws://127.0.0.1:8081/';
+  const url = (typeof CONFIG !== 'undefined' && CONFIG.DISCORD_WS_URL) || 'wss://ada-price-bot-production.up.railway.app/';
   const ws = new WebSocket(url);
 
   ws.onopen = () => console.log('Discord bridge connected');
