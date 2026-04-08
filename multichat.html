@@ -820,17 +820,10 @@ function handleSBEvent(data) {
   }
   
   if (evt.source === 'YouTube' && evt.type === 'Message') {
-    try {
-      const d = data.data || {};
-      console.log('[YT RAW]', JSON.stringify(data, null, 2));
-      const m = d.message || {};
-      const username = (typeof m.author === 'string' ? m.author : null)
-        || m.author?.displayName || m.author?.name
-        || d.author?.displayName || d.displayName || 'YouTube User';
-      const text = m.message || m.content || m.text || d.message || d.content || '';
-      if (username && text) addMessage('youtube', username, text, '');
-      else console.warn('[YT] unexpected payload:', JSON.stringify(d).slice(0,200));
-    } catch(e) { console.error('[YT] error:', e); }
+    const d = data.data || {};
+    const username = d.user?.name || d.user?.displayName || 'YouTube User';
+    const text = typeof d.message === 'string' ? d.message : (d.message?.text || '');
+    if (text) addMessage('youtube', username, text, '');
   }
   
   if (evt.source === 'Kick' && evt.type === 'ChatMessage') {
