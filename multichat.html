@@ -452,9 +452,97 @@
     text-align: center; 
     line-height: 1.7; 
   }
-</style>
+
+  /* ── Donation overlay ── */
+  #donation-overlay {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none; z-index: 9999;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .donation-card {
+    position: relative; padding: 14px 20px; border-radius: 8px;
+    min-width: 220px; max-width: 320px; text-align: center;
+    animation: donation-in 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards;
+    opacity: 0;
+  }
+  .donation-card.hiding {
+    animation: donation-out 0.4s ease-in forwards;
+  }
+
+  @keyframes donation-in {
+    from { opacity: 0; transform: scale(0.7) translateY(20px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+  }
+  @keyframes donation-out {
+    from { opacity: 1; transform: scale(1); }
+    to   { opacity: 0; transform: scale(0.85) translateY(-10px); }
+  }
+
+  .donation-user {
+    font-size: 13px; font-weight: 700; letter-spacing: 0.03em;
+    margin-bottom: 4px;
+  }
+  .donation-amount {
+    font-size: 18px; font-weight: 700; letter-spacing: 0.05em;
+  }
+  .donation-icon {
+    font-size: 22px; margin-bottom: 6px; display: block;
+  }
+
+  /* Classic */
+  .donation-classic {
+    background: linear-gradient(135deg, #1a1400, #2a2000);
+    border: 2px solid #c9a227;
+    box-shadow: 0 0 20px rgba(201,162,39,0.4), inset 0 0 30px rgba(201,162,39,0.05);
+  }
+  .donation-classic .donation-user   { color: #f0d060; }
+  .donation-classic .donation-amount { color: #fff; }
+
+  /* Electric */
+  .donation-electric {
+    background: linear-gradient(135deg, #1a0d00, #2a1500);
+    border: 2px solid #ff8c00;
+    box-shadow: 0 0 25px rgba(255,140,0,0.5), inset 0 0 30px rgba(255,140,0,0.05);
+    animation: donation-in 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards,
+               electric-pulse 0.15s ease-in-out infinite alternate;
+  }
+  @keyframes electric-pulse {
+    from { box-shadow: 0 0 20px rgba(255,140,0,0.4), inset 0 0 20px rgba(255,140,0,0.05); }
+    to   { box-shadow: 0 0 40px rgba(255,180,0,0.8), inset 0 0 40px rgba(255,180,0,0.1); }
+  }
+  .donation-electric.hiding { animation: donation-out 0.4s ease-in forwards; }
+  .donation-electric .donation-user   { color: #ffb347; }
+  .donation-electric .donation-amount { color: #fff; }
+
+  /* Glitch */
+  .donation-glitch {
+    background: linear-gradient(135deg, #0d0014, #1a0028);
+    border: 2px solid #9b59b6;
+    box-shadow: 0 0 25px rgba(155,89,182,0.5);
+  }
+  .donation-glitch .donation-user   { color: #cc88ff; }
+  .donation-glitch .donation-amount {
+    color: #fff;
+    animation: glitch-text 0.3s infinite;
+  }
+  @keyframes glitch-text {
+    0%   { text-shadow: 2px 0 #ff00ff, -2px 0 #00ffff; transform: translate(0); }
+    20%  { text-shadow: -2px 0 #ff00ff, 2px 0 #00ffff; transform: translate(-2px, 1px); }
+    40%  { text-shadow: 2px 0 #ff00ff, -2px 0 #00ffff; transform: translate(2px, -1px); }
+    60%  { text-shadow: -2px 0 #ff00ff, 2px 0 #00ffff; transform: translate(0); }
+    80%  { text-shadow: 2px 2px #ff00ff, -2px -2px #00ffff; transform: translate(1px, 0); }
+    100% { text-shadow: 2px 0 #ff00ff, -2px 0 #00ffff; transform: translate(0); }
+  }
+
+  /* Chat row donation highlight */
+  .msg.donation-msg {
+    background: rgba(201,162,39,0.08);
+    border-left: 2px solid #c9a227;
+  }
 </head>
 <body>
+<div id="donation-overlay"></div>
 <div id="app">
 
   <button class="toggle-ui-btn" onclick="toggleUI()" title="Hide/show UI">UI</button>
@@ -749,7 +837,7 @@ function esc(s) {
 }
 
 /* ── Public Message Interface ── */
-function addMessage(platform, username, text, badge) {
+function addMessage(platform, username, text, badge, isDonation) {
   if (!platformData[platform]) return;
   emptyState.style.display = 'none';
 
@@ -763,15 +851,19 @@ function addMessage(platform, username, text, badge) {
   const badgeHtml = badge && badgeMap[badge]
     ? `<span class="badge ${badgeMap[badge]}">${esc(badge)}</span>` : '';
 
+  const donationBadge = isDonation
+    ? `<span class="badge" style="background:rgba(201,162,39,0.2);color:#f0d060;">💰 tip</span>` : '';
+
   const div = document.createElement('div');
-  div.className = 'msg' + (filter !== 'all' && filter !== platform ? ' platform-hidden' : '');
+  div.className = 'msg' + (isDonation ? ' donation-msg' : '') +
+                  (filter !== 'all' && filter !== platform ? ' platform-hidden' : '');
   div.dataset.platform = platform;
   div.innerHTML = `
     <span class="platform-tag ${p.tag}">${p.label}</span>
     <div class="msg-body">
       <div class="msg-header">
         <span class="username ${p.uClass}">${esc(username)}</span>
-        ${badgeHtml}
+        ${badgeHtml}${donationBadge}
         <span class="timestamp">${time}</span>
       </div>
       <div class="msg-text">${esc(text)}</div>
@@ -779,6 +871,42 @@ function addMessage(platform, username, text, badge) {
 
   msgContainer.appendChild(div);
   if (autoScroll) msgContainer.scrollTop = msgContainer.scrollHeight;
+}
+
+/* ── Donation overlay ── */
+const DONATION_STYLES = ['classic', 'electric', 'glitch'];
+let donationStyleIndex = 0;
+let donationTimer = null;
+
+const DONATION_ICONS = {
+  classic:  '🏆',
+  electric: '⚡',
+  glitch:   '👾'
+};
+
+function showDonation(username, text) {
+  const overlay = document.getElementById('donation-overlay');
+  /* clear any existing card */
+  overlay.innerHTML = '';
+  if (donationTimer) clearTimeout(donationTimer);
+
+  const style = DONATION_STYLES[donationStyleIndex % DONATION_STYLES.length];
+  donationStyleIndex++;
+
+  const card = document.createElement('div');
+  card.className = `donation-card donation-${style}`;
+  card.innerHTML = `
+    <span class="donation-icon">${DONATION_ICONS[style]}</span>
+    <div class="donation-user">${esc(username)}</div>
+    <div class="donation-amount">${esc(text)}</div>`;
+
+  overlay.appendChild(card);
+
+  /* hide after 5s */
+  donationTimer = setTimeout(() => {
+    card.classList.add('hiding');
+    setTimeout(() => { overlay.innerHTML = ''; }, 400);
+  }, 5000);
 }
 
 /* ── Streamer.bot WebSocket ── */
@@ -819,8 +947,41 @@ function handleSBEvent(data) {
   }
   
   if (evt.source === 'YouTube' && evt.type === 'Message') {
-    const m = data.data.message;
-    addMessage('youtube', m.author, m.message, '');
+    const d = data.data || {};
+    const m = d.message || d || {};
+
+    // Streamer.bot YouTube field names vary by version
+    const username =
+      m.author?.displayName ||
+      m.author?.name ||
+      m.author ||
+      d.author?.displayName ||
+      d.author?.name ||
+      d.author ||
+      d.displayName ||
+      d.name ||
+      'YouTube User';
+
+    const text =
+      m.message ||
+      m.content ||
+      m.text ||
+      d.message ||
+      d.content ||
+      d.text ||
+      '';
+
+    if (!text) {
+      // Log unknown structure so we can fix it
+      console.warn('[YouTube] Unknown payload structure:', JSON.stringify(data.data));
+      return;
+    }
+
+    const isMod = m.isModerator || m.moderator || d.isModerator || false;
+    const isSub = m.isMember   || m.subscriber  || d.isMember   || false;
+    const badge = isSub ? 'sub' : isMod ? 'mod' : '';
+
+    addMessage('youtube', username, text, badge);
   }
   
   if (evt.source === 'Kick' && evt.type === 'ChatMessage') {
@@ -865,23 +1026,31 @@ function connectAbstract() {
   ws.onmessage = (event) => {
     try {
       const data = JSON.parse(event.data);
-      
+
       if (data.type === 'chat_history' && data.payload?.messages) {
         data.payload.messages.forEach(m => {
           if (!ABS_SEEN.has(m.id)) {
             ABS_SEEN.add(m.id);
-            addMessage('abstract', m.user_name || 'anon', m.text || '', '');
+            addMessage('abstract', m.user_name || 'anon', m.text || '', '', m.is_donation);
           }
         });
       }
-      
+
       if (data.type === 'chat_message' && data.payload) {
         const m = data.payload;
         if (!ABS_SEEN.has(m.id)) {
           ABS_SEEN.add(m.id);
-          addMessage('abstract', m.user_name || 'anon', m.text || '', '');
+          addMessage('abstract', m.user_name || 'anon', m.text || '', '', m.is_donation);
         }
       }
+
+      /* ── Donation events ── */
+      if (data.type === 'donation' || data.type === 'test_donation') {
+        const m = data.payload;
+        showDonation(m.user_name || 'anon', m.text || '');
+        addMessage('abstract', m.user_name || 'anon', m.text || '', '', true);
+      }
+
     } catch(e) {}
   };
   ws.onclose = () => setTimeout(connectAbstract, 5000);
