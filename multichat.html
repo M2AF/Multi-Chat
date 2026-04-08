@@ -812,6 +812,7 @@ function connectStreamerBot() {
 function handleSBEvent(data) {
   const evt = data.event;
   if (!evt) return;
+  console.log('[SB EVENT]', evt.source, evt.type, JSON.stringify(data).slice(0, 300));
 
   if (evt.source === 'Twitch' && evt.type === 'ChatMessage') {
     const m = data.data.message;
@@ -819,8 +820,17 @@ function handleSBEvent(data) {
   }
   
   if (evt.source === 'YouTube' && evt.type === 'Message') {
-    const m = data.data.message;
-    addMessage('youtube', m.author, m.message, '');
+    try {
+      const d = data.data || {};
+      console.log('[YT RAW]', JSON.stringify(data, null, 2));
+      const m = d.message || {};
+      const username = (typeof m.author === 'string' ? m.author : null)
+        || m.author?.displayName || m.author?.name
+        || d.author?.displayName || d.displayName || 'YouTube User';
+      const text = m.message || m.content || m.text || d.message || d.content || '';
+      if (username && text) addMessage('youtube', username, text, '');
+      else console.warn('[YT] unexpected payload:', JSON.stringify(d).slice(0,200));
+    } catch(e) { console.error('[YT] error:', e); }
   }
   
   if (evt.source === 'Kick' && evt.type === 'ChatMessage') {
@@ -899,8 +909,13 @@ function connectDiscord() {
   ws.onmessage = (event) => {
     try {
       const d = JSON.parse(event.data);
+      console.log('[BRIDGE RAW]', JSON.stringify(d).slice(0, 300));
       if (d.platform === 'discord' && d.username && d.text) {
         addMessage('discord', d.username, d.text, '');
+      } else if (d.platform === 'youtube') {
+        const user = d.username || d.author || d.displayName || 'YouTube User';
+        const text = d.text || d.message || d.content || '';
+        if (user && text) addMessage('youtube', user, text, '');
       }
     } catch(e) {}
   };
