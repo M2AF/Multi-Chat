@@ -436,6 +436,72 @@
     opacity: 1;
   }
 
+  /* ── Send Bar ── */
+  .send-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .send-input {
+    flex: 1;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 12px;
+    padding: 5px 10px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  .send-input:focus {
+    border-color: rgba(255,255,255,0.2);
+  }
+
+  .send-input::placeholder {
+    color: var(--muted);
+    opacity: 0.6;
+  }
+
+  .send-btn {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 5px 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .send-btn:hover {
+    background: rgba(255,255,255,0.14);
+    border-color: rgba(255,255,255,0.2);
+  }
+
+  .send-btn:active {
+    transform: scale(0.97);
+  }
+
+  .send-btn.sending {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* Hide send bar when UI is hidden */
+  .ui-hidden .send-bar {
+    display: none !important;
+  }
+
   .empty-state {
     display: flex; 
     flex-direction: column; 
@@ -553,12 +619,27 @@
     <button class="auto-scroll-btn on" id="scroll-btn" onclick="toggleAutoScroll()">⬆️⬇️</button>
   </footer>
 
+  <div class="send-bar" id="send-bar">
+    <input
+      class="send-input"
+      id="send-input"
+      type="text"
+      placeholder="Send to all platforms…"
+      maxlength="500"
+      onkeydown="if(event.key==='Enter') sendToAll()"
+    >
+    <button class="send-btn" id="send-btn" onclick="sendToAll()">
+      Send to All
+    </button>
+  </div>
+
 </div>
 
 <script src="config.js"></script>
 <script>
 /* ── State Management ── */
 let filter = 'all';
+let sbWs = null;
 let autoScroll = true;
 let counts = { twitch: 0, youtube: 0, kick: 0, abstract: 0, discord: 0 };
 
@@ -785,7 +866,8 @@ function addMessage(platform, username, text, badge) {
 const SB_WS = (typeof CONFIG !== 'undefined' && CONFIG.SB_WS_URL) || 'ws://127.0.0.1:8080/';
 
 function connectStreamerBot() {
-  const ws = new WebSocket(SB_WS);
+  sbWs = new WebSocket(SB_WS);
+  const ws = sbWs;
 
   ws.onopen = () => {
     ws.send(JSON.stringify({
@@ -918,6 +1000,44 @@ function connectDiscord() {
 }
 
 connectDiscord();
+
+/* ── Send to All Platforms via Streamer.bot ── */
+function sendToAll() {
+  const input = document.getElementById('send-input');
+  const btn   = document.getElementById('send-btn');
+  const text  = input.value.trim();
+  if (!text || btn.classList.contains('sending')) return;
+
+  // Find the open Streamer.bot WebSocket
+  if (!sbWs || sbWs.readyState !== WebSocket.OPEN) {
+    console.warn('[Send] Streamer.bot not connected');
+    input.placeholder = '⚠️ Streamer.bot not connected';
+    setTimeout(() => { input.placeholder = 'Send to all platforms…'; }, 3000);
+    return;
+  }
+
+  btn.classList.add('sending');
+  btn.textContent = 'Sending…';
+
+  // Streamer.bot DoAction or SendMessage — send to each connected platform
+  const platforms = ['Twitch', 'YouTube', 'Kick'];
+  platforms.forEach(platform => {
+    sbWs.send(JSON.stringify({
+      request: 'SendMessage',
+      message: { platform, message: text },
+      id: 'send-' + platform.toLowerCase() + '-' + Date.now()
+    }));
+  });
+
+  // Show as own message in the overlay too
+  addMessage('twitch', (typeof CONFIG !== 'undefined' && CONFIG.BRAND_NAME) || 'You', text, '');
+
+  input.value = '';
+  setTimeout(() => {
+    btn.classList.remove('sending');
+    btn.textContent = 'Send to All';
+  }, 1000);
+}
 
 function toggleUI() {
   document.getElementById('app').classList.toggle('ui-hidden');
