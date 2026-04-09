@@ -1040,8 +1040,17 @@ function sendToAll() {
 }
 
 function toggleUI() {
-  document.getElementById('app').classList.toggle('ui-hidden');
+  const app = document.getElementById('app');
+  app.classList.toggle('ui-hidden');
+  saveSettings({ uiHidden: app.classList.contains('ui-hidden') });
 }
+
+// Restore UI hidden state on load
+(function() {
+  if (loadSettings().uiHidden) {
+    document.getElementById('app').classList.add('ui-hidden');
+  }
+})();
 
 // Global access for debugging/external triggers
 window.addMessage = addMessage;
