@@ -1,12 +1,48 @@
 {
-  "name": "multichat-bridge",
+  "name": "multichat",
   "version": "1.0.0",
-  "description": "Discord bridge for CriptoEjesus MultiChat",
-  "main": "discord-bridge.js",
+  "description": "Multi-platform stream chat overlay — Twitch, YouTube, Kick, Abstract, Discord",
+  "main": "electron-main.js",
+  "author": "criptoejesus",
+  "license": "MIT",
   "scripts": {
-    "start": "node discord-bridge.js"
+    "start":       "electron .",
+    "build":       "electron-builder --win",
+    "build:mac":   "electron-builder --mac",
+    "build:linux": "electron-builder --linux"
   },
-  "dependencies": {
-    "ws": "^8.17.0"
+  "devDependencies": {
+    "electron":         "^29.0.0",
+    "electron-builder": "^24.0.0"
+  },
+  "build": {
+    "appId":       "com.criptoejesus.multichat",
+    "productName": "MultiChat",
+    "files": [
+      "multichat.html",
+      "setup.html",
+      "electron-main.js",
+      "preload.js",
+      "assets/**/*"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon":   "assets/icon.ico"
+    },
+    "nsis": {
+      "oneClick":         false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    },
+    "mac": {
+      "target": "dmg",
+      "icon":   "assets/icon.icns",
+      "category": "public.app-category.utilities"
+    },
+    "linux": {
+      "target": "AppImage",
+      "icon":   "assets/icon.png"
+    }
   }
 }

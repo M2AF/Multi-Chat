@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MultiChat — Setup</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg:       #0e0e10;
+    --surface:  #18181b;
+    --surface2: #1f1f23;
+    --border:   rgba(255,255,255,0.08);
+    --text:     #efeff1;
+    --muted:    #adadb8;
+    --twitch:   #9147ff;
+    --youtube:  #ff4444;
+    --kick:     #53fc18;
+    --abstract: #00ffa3;
+    --discord:  #7289da;
+    --accent:   #00ffa3;
+    --font:     'IBM Plex Sans', sans-serif;
+    --mono:     'IBM Plex Mono', monospace;
+  }
+
+  html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--font); overflow-x: hidden; }
+  .container  { max-width: 500px; margin: 0 auto; padding: 28px 24px 40px; }
+
+  .app-header { text-align: center; margin-bottom: 28px; }
+  .app-logo   { font-family: var(--mono); font-size: 22px; font-weight: 500; color: var(--text); letter-spacing: 0.04em; }
+  .app-logo span { color: var(--accent); }
+  .app-sub    { font-size: 12px; color: var(--muted); margin-top: 5px; }
+
+  .steps { display: flex; margin-bottom: 24px; border-radius: 6px; overflow: hidden; border: 1px solid var(--border); }
+  .step  { flex: 1; text-align: center; padding: 8px 4px; font-size: 10px; font-family: var(--mono); color: var(--muted); background: var(--surface); border-right: 1px solid var(--border); transition: all 0.2s; }
+  .step:last-child { border-right: none; }
+  .step.active { background: rgba(0,255,163,0.1); color: var(--accent); font-weight: 500; }
+  .step.done   { background: rgba(0,255,163,0.05); color: rgba(0,255,163,0.5); }
+
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 18px; margin-bottom: 12px; }
+  .card-title { font-size: 11px; font-weight: 600; font-family: var(--mono); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 14px; display: flex; align-items: center; gap: 7px; }
+  .card-title .cdot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .cdot-twitch   { background: var(--twitch); }
+  .cdot-youtube  { background: var(--youtube); }
+  .cdot-kick     { background: var(--kick); }
+  .cdot-abstract { background: var(--abstract); }
+  .cdot-discord  { background: var(--discord); }
+  .cdot-general  { background: var(--accent); }
+
+  .field { margin-bottom: 12px; }
+  .field:last-child { margin-bottom: 0; }
+
+  label { display: block; font-size: 11px; color: var(--muted); margin-bottom: 5px; font-family: var(--mono); }
+  label .req { color: var(--accent); margin-left: 2px; }
+  label .opt { color: rgba(173,173,184,0.4); margin-left: 4px; font-size: 10px; }
+
+  input[type="text"], input[type="password"], input[type="url"] {
+    width: 100%; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 5px; color: var(--text); font-family: var(--mono);
+    font-size: 12px; padding: 8px 11px; outline: none; transition: border-color 0.15s;
+  }
+  input:focus { border-color: rgba(0,255,163,0.4); }
+  input::placeholder { color: rgba(173,173,184,0.35); }
+  input.error { border-color: rgba(255,68,68,0.5); }
+  input.ok    { border-color: rgba(0,255,163,0.5); }
+
+  .hint { font-size: 10px; color: rgba(173,173,184,0.5); margin-top: 4px; line-height: 1.6; }
+  .hint a { color: var(--accent); text-decoration: none; }
+  .hint strong { color: var(--text); }
+
+  .guide-box { margin-top: 10px; background: rgba(0,255,163,0.04); border: 1px solid rgba(0,255,163,0.15); border-radius: 6px; padding: 12px; }
+  .guide-box-title { font-size: 10px; font-weight: 600; color: var(--abstract); font-family: var(--mono); margin-bottom: 8px; letter-spacing: 0.05em; }
+  .guide-box-body  { font-size: 11px; color: var(--muted); line-height: 1.9; }
+
+  .nav { display: flex; gap: 8px; margin-top: 20px; }
+  .btn { flex: 1; padding: 10px; border-radius: 5px; font-family: var(--font); font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.15s; border: none; }
+  .btn-primary   { background: var(--accent); color: #000; }
+  .btn-primary:hover   { filter: brightness(1.1); }
+  .btn-primary:disabled{ opacity: 0.4; cursor: not-allowed; filter: none; }
+  .btn-secondary { background: var(--surface2); color: var(--muted); border: 1px solid var(--border); }
+  .btn-secondary:hover { color: var(--text); }
+
+  .error-msg { font-size: 11px; color: #ff6b6b; margin-top: 8px; display: none; }
+
+  .page        { display: none; }
+  .page.active { display: block; }
+
+  /* Done screen */
+  .done-icon  { text-align: center; font-size: 48px; margin: 20px 0 12px; }
+  .done-title { text-align: center; font-size: 18px; font-weight: 600; margin-bottom: 8px; }
+  .done-sub   { text-align: center; font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 24px; }
+
+  .platform-pills { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-bottom: 20px; }
+  .pill { font-size: 11px; font-family: var(--mono); padding: 3px 10px; border-radius: 20px; border: 1px solid; }
+  .pill-twitch   { color: var(--twitch);   border-color: rgba(145,71,255,0.3);  background: rgba(145,71,255,0.1); }
+  .pill-youtube  { color: var(--youtube);  border-color: rgba(255,68,68,0.3);   background: rgba(255,68,68,0.1); }
+  .pill-kick     { color: var(--kick);     border-color: rgba(83,252,24,0.3);   background: rgba(83,252,24,0.1); }
+  .pill-abstract { color: var(--abstract); border-color: rgba(0,255,163,0.3);   background: rgba(0,255,163,0.1); }
+  .pill-discord  { color: var(--discord);  border-color: rgba(114,137,218,0.3); background: rgba(114,137,218,0.1); }
+
+  .overlay-box { background: rgba(0,255,163,0.05); border: 1px solid rgba(0,255,163,0.2); border-radius: 8px; padding: 14px; margin-bottom: 16px; }
+  .overlay-box-title { font-family: var(--mono); font-weight: 600; color: var(--abstract); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 8px; }
+  .overlay-path { font-family: var(--mono); font-size: 11px; color: var(--text); word-break: break-all; background: rgba(0,0,0,0.3); border-radius: 4px; padding: 6px 8px; margin: 6px 0; }
+  .overlay-steps { color: var(--muted); line-height: 1.8; font-size: 11px; margin-top: 8px; }
+  .overlay-steps strong { color: var(--text); }
+
+  .inline-btn { background: rgba(0,255,163,0.1); border: 1px solid rgba(0,255,163,0.25); color: var(--abstract); font-family: var(--mono); font-size: 10px; padding: 4px 10px; border-radius: 4px; cursor: pointer; margin-top: 6px; }
+  .inline-btn:hover { filter: brightness(1.15); }
+
+  kbd { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 3px; padding: 1px 5px; font-size: 10px; font-family: var(--mono); }
+  code { color: var(--abstract); font-size: 10px; font-family: var(--mono); }
+
+  /* Loading spinner for async lookups */
+  .field-row { display: flex; gap: 8px; align-items: flex-start; }
+  .field-row input { flex: 1; }
+  .lookup-btn { flex-shrink: 0; padding: 8px 12px; background: rgba(255,255,255,0.08); border: 1px solid var(--border); border-radius: 5px; color: var(--text); font-family: var(--mono); font-size: 11px; cursor: pointer; white-space: nowrap; transition: all 0.15s; margin-top: 0; }
+  .lookup-btn:hover { border-color: rgba(255,255,255,0.2); }
+  .lookup-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .field-status { font-size: 10px; margin-top: 4px; }
+  .field-status.ok    { color: #22c55e; }
+  .field-status.error { color: #ef4444; }
+  .field-status.info  { color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="app-header">
+    <div class="app-logo">Multi<span>Chat</span></div>
+    <div class="app-sub">Stream chat overlay · First-time setup</div>
+  </div>
+
+  <div class="steps">
+    <div class="step active" id="step-1">1 · You</div>
+    <div class="step"        id="step-2">2 · Streams</div>
+    <div class="step"        id="step-3">3 · Discord</div>
+    <div class="step"        id="step-4">4 · Done</div>
+  </div>
+
+  <!-- ── Page 1: Name ── -->
+  <div class="page active" id="page-1">
+    <div class="card">
+      <div class="card-title"><span class="cdot cdot-general"></span>Your Streamer Name</div>
+      <div class="field">
+        <label for="brand-name">Display name <span class="req">*</span></label>
+        <input type="text" id="brand-name" placeholder="e.g. criptoejesus" maxlength="32">
+        <div class="hint">Shown in the top-left of the overlay.</div>
+      </div>
+    </div>
+    <div id="error-1" class="error-msg">Please enter your streamer name.</div>
+    <div class="nav">
+      <button class="btn btn-primary" onclick="goTo(2)">Next →</button>
+    </div>
+  </div>
+
+  <!-- ── Page 2: Platforms ── -->
+  <div class="page" id="page-2">
+
+    <!-- Twitch -->
+    <div class="card">
+      <div class="card-title"><span class="cdot cdot-twitch"></span>Twitch</div>
+      <div class="field">
+        <label for="twitch-url">Channel URL <span class="opt">optional</span></label>
+        <input type="url" id="twitch-url" placeholder="https://twitch.tv/username">
+        <div class="hint">No token needed — MultiChat reads chat anonymously via Twitch IRC.</div>
+      </div>
+    </div>
+
+    <!-- Kick -->
+    <div class="card">
+      <div class="card-title"><span class="cdot cdot-kick"></span>Kick</div>
+      <div class="field">
+        <label for="kick-url">Channel URL <span class="opt">optional</span></label>
+        <div class="field-row">
+          <input type="url" id="kick-url" placeholder="https://kick.com/username">
+          <button class="lookup-btn" id="kick-lookup-btn" onclick="lookupKickChatroom()" type="button">Verify →</button>
+        </div>
+        <div class="field-status info" id="kick-status">Enter your Kick URL and click Verify to resolve your chatroom ID.</div>
+        <input type="hidden" id="kick-chatroom-id" value="0">
+        <div class="hint" style="margin-top:6px;">No token needed — uses Kick's public Pusher WebSocket.</div>
+      </div>
+    </div>
+
+    <!-- YouTube -->
+    <div class="card">
+      <div class="card-title"><span class="cdot cdot-youtube"></span>YouTube</div>
+      <div class="field">
+        <label for="youtube-url">Channel URL <span class="opt">optional</span></label>
+        <input type="url" id="youtube-url" placeholder="https://youtube.com/@handle">
+      </div>
+      <div class="field">
+        <label for="youtube-handle">Channel handle or ID <span class="opt">for live chat</span></label>
+        <div class="field-row">
+          <input type="text" id="youtube-handle" placeholder="@criptoejesus  or  UCxxxxxx...">
+          <button class="lookup-btn" id="yt-lookup-btn" onclick="resolveYouTubeChannel()" type="button">Verify →</button>
+        </div>
+        <div class="field-status info" id="yt-status">Enter your @handle or Channel ID. Your YouTube API key is used server-side — no key needed here.</div>
+        <input type="hidden" id="youtube-channel-id" value="">
+      </div>
+    </div>
+
+    <!-- Abstract -->
+    <div class="card">
+      <div class="card-title"><span class="cdot cdot-abstract"></span>Abstract</div>
+      <div class="field">
+        <label for="abstract-url">Stream URL <span class="opt">optional</span></label>
+        <input type="url" id="abstract-url" placeholder="https://portal.abs.xyz/stream/username">
+      </div>
+      <div class="field">
+        <label for="abs-ws-url">AbsTools WebSocket URL <span class="opt">optional</span></label>
+        <input type="text" id="abs-ws-url" placeholder="wss://abstools.top/api/ws?channel_id=...">
+        <div class="guide-box">
+          <div class="guide-box-title">How to find your Channel ID</div>
+          <div class="guide-box-body">
+            <span style="color:var(--text)">1.</span> Go to <a href="#" onclick="openExternal('https://abstools.top')">abstools.top</a> and log in<br>
+            <span style="color:var(--text)">2.</span> Click <strong>Chat Overlay</strong> in the sidebar<br>
+            <span style="color:var(--text)">3.</span> Press <kbd>F12</kbd> → <strong>Network</strong> tab → filter by <strong>WS</strong><br>
+            <span style="color:var(--text)">4.</span> Refresh — copy the URL starting with <code>wss://abstools.top/api/ws?channel_id=</code>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="nav">
+      <button class="btn btn-secondary" onclick="goTo(1)">← Back</button>
+      <button class="btn btn-primary"   onclick="goTo(3)">Next →</button>
+    </div>
+  </div>
+
+  <!-- ── Page 3: Discord ── -->
+  <div class="page" id="page-3">
+    <div class="card">
+      <div class="card-title"><span class="cdot cdot-discord"></span>Discord Bot</div>
+      <div class="field">
+        <label for="discord-token">Bot Token <span class="opt">optional</span></label>
+        <input type="password" id="discord-token" placeholder="Paste your bot token here">
+        <div class="hint">
+          Get a free token at <a href="#" onclick="openExternal('https://discord.com/developers/applications')">discord.com/developers</a>
+          → New Application → Bot tab → Reset Token → Copy
+        </div>
+      </div>
+      <div class="field">
+        <label for="discord-channel">Discord Channel ID <span class="opt">optional</span></label>
+        <input type="text" id="discord-channel" placeholder="e.g. 1217523827274158232">
+        <div class="hint">Settings → Advanced → enable Developer Mode. Right-click channel → Copy Channel ID.</div>
+      </div>
+      <div class="field">
+        <label for="discord-ws">Bridge URL <span class="opt">optional</span></label>
+        <input type="text" id="discord-ws" value="ws://127.0.0.1:8081/" placeholder="ws://127.0.0.1:8081/">
+        <div class="hint">
+          Local: <code>ws://127.0.0.1:8081/</code><br>
+          Railway: <code>wss://your-app.up.railway.app/</code>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="background:rgba(114,137,218,0.06);border-color:rgba(114,137,218,0.2);">
+      <div style="font-size:11px;color:var(--muted);line-height:1.8;">
+        <strong style="color:var(--text)">Required permissions:</strong> ✅ View Channels &nbsp; ✅ Read Message History<br>
+        <strong style="color:var(--text)">Required intent:</strong> ✅ Message Content Intent
+        <span style="color:rgba(173,173,184,0.5)"> (Bot tab → Privileged Gateway Intents)</span>
+      </div>
+    </div>
+
+    <div id="error-3" class="error-msg"></div>
+    <div class="nav">
+      <button class="btn btn-secondary" onclick="goTo(2)">← Back</button>
+      <button class="btn btn-primary"   id="save-btn" onclick="saveAndFinish()">Save & Launch →</button>
+    </div>
+  </div>
+
+  <!-- ── Page 4: Done ── -->
+  <div class="page" id="page-4">
+    <div class="done-icon">🎉</div>
+    <div class="done-title">You're all set!</div>
+    <div class="done-sub" id="done-sub">MultiChat is configured and ready.</div>
+    <div class="platform-pills" id="done-pills"></div>
+
+    <div class="overlay-box">
+      <div class="overlay-box-title">📺 Your OBS Overlay File</div>
+      <div id="overlay-path-wrap" style="display:none;">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Saved to your Desktop:</div>
+        <div class="overlay-path" id="overlay-path"></div>
+        <button class="inline-btn" onclick="showOverlayInFolder()">Open folder →</button>
+      </div>
+      <div id="overlay-error" style="font-size:11px;color:#ef4444;display:none;margin-bottom:8px;"></div>
+      <div class="overlay-steps">
+        <strong>Add to OBS:</strong><br>
+        1. Click <strong>+</strong> in Sources → <strong>Browser</strong><br>
+        2. Check <strong>Local File</strong> → browse to the file above<br>
+        3. Set width/height (e.g. <strong>400 × 900</strong>)<br>
+        4. Hit OK — messages appear when you go live!
+      </div>
+    </div>
+
+    <div class="nav">
+      <button class="btn btn-primary" id="launch-btn" onclick="launch()">Open MultiChat</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+let currentPage = 1;
+
+/* ─── Navigation ────────────────────────────────────────────────────────── */
+function goTo(n) {
+  if (currentPage === 1 && n > 1) {
+    const name = document.getElementById('brand-name').value.trim();
+    if (!name) {
+      document.getElementById('brand-name').classList.add('error');
+      document.getElementById('error-1').style.display = 'block';
+      return;
+    }
+    document.getElementById('brand-name').classList.remove('error');
+    document.getElementById('error-1').style.display = 'none';
+  }
+  for (let i = 1; i <= 4; i++) {
+    document.getElementById('step-' + i).className =
+      'step' + (i === n ? ' active' : i < n ? ' done' : '');
+  }
+  document.getElementById('page-' + currentPage).classList.remove('active');
+  document.getElementById('page-' + n).classList.add('active');
+  currentPage = n;
+}
+
+function openExternal(url) { window.open(url, '_blank'); }
+
+/* ─── Slug extraction helper ─────────────────────────────────────────────── */
+function extractSlug(url) {
+  try { return new URL(url).pathname.replace(/^\//, '').split('/')[0].toLowerCase() || ''; }
+  catch(e) { return url.toLowerCase().trim().replace(/^@/,''); }
+}
+
+/* ─── Kick chatroom ID lookup ────────────────────────────────────────────── */
+// Called when the user clicks "Verify →" on the Kick field.
+// Uses the Railway discord-bridge /kick-chatroom proxy first,
+// then falls back to corsproxy.io if no bridge URL is configured.
+async function lookupKickChatroom() {
+  const urlVal = document.getElementById('kick-url').value.trim();
+  if (!urlVal) return;
+  const slug = extractSlug(urlVal);
+  if (!slug) { setKickStatus('error','Could not extract channel slug from URL'); return; }
+
+  const btn = document.getElementById('kick-lookup-btn');
+  btn.disabled = true;
+  btn.textContent = '…';
+  setKickStatus('info', `Looking up chatroom ID for "${slug}"…`);
+
+  // Try Railway bridge proxy first (no CORS issues)
+  const bridgeBase = getBridgeHttpUrl();
+  let data = null;
+
+  if (bridgeBase) {
+    try {
+      const r = await fetch(`${bridgeBase}/kick-chatroom?slug=${encodeURIComponent(slug)}`);
+      data = await r.json();
+      if (data.chatroomId) {
+        document.getElementById('kick-chatroom-id').value = data.chatroomId;
+        setKickStatus('ok', `✓ Chatroom ID: ${data.chatroomId}`);
+        document.getElementById('kick-url').classList.add('ok');
+        btn.textContent = '✓';
+        btn.disabled = false;
+        return;
+      }
+    } catch(e) {}
+  }
+
+  // Fallback: corsproxy.io
+  try {
+    const r = await fetch(`https://corsproxy.io/?url=https://kick.com/api/v1/channels/${slug}`);
+    data = await r.json();
+    const chatroomId = data?.chatroom?.id;
+    if (!chatroomId) throw new Error('No chatroom ID in response');
+    document.getElementById('kick-chatroom-id').value = chatroomId;
+    setKickStatus('ok', `✓ Chatroom ID: ${chatroomId}`);
+    document.getElementById('kick-url').classList.add('ok');
+    btn.textContent = '✓';
+  } catch(e) {
+    setKickStatus('error', `Could not find chatroom ID. You can find it manually at kick.com/api/v2/channels/${slug}`);
+    btn.textContent = '↺';
+  }
+  btn.disabled = false;
+}
+
+function setKickStatus(type, msg) {
+  const el = document.getElementById('kick-status');
+  el.className = 'field-status ' + type;
+  el.textContent = msg;
+}
+
+/* ─── YouTube channel resolve ────────────────────────────────────────────── */
+// If the user's Railway bridge is configured and has YOUTUBE_API_KEY,
+// we ask the bridge to resolve the @handle → channelId.
+// Otherwise we try to detect if they typed a UC... channel ID directly.
+async function resolveYouTubeChannel() {
+  const raw = document.getElementById('youtube-handle').value.trim();
+  if (!raw) return;
+
+  const btn = document.getElementById('yt-lookup-btn');
+  btn.disabled = true;
+  btn.textContent = '…';
+  setYtStatus('info', 'Looking up channel…');
+
+  // If it already looks like a channel ID, accept it immediately
+  if (/^UC[a-zA-Z0-9_-]{20,}$/.test(raw)) {
+    document.getElementById('youtube-channel-id').value = raw;
+    document.getElementById('youtube-handle').classList.add('ok');
+    setYtStatus('ok', `✓ Channel ID: ${raw}`);
+    btn.textContent = '✓'; btn.disabled = false;
+    return;
+  }
+
+  // Try proxy resolve (needs YOUTUBE_API_KEY on Railway)
+  const bridgeBase = getBridgeHttpUrl();
+  if (bridgeBase) {
+    try {
+      const handle = raw.replace(/^@/, '');
+      const r = await fetch(`${bridgeBase}/yt-proxy?action=resolveChannel&handle=${encodeURIComponent(handle)}`);
+      const data = await r.json();
+      if (data.channelId) {
+        document.getElementById('youtube-channel-id').value = data.channelId;
+        document.getElementById('youtube-handle').classList.add('ok');
+        setYtStatus('ok', `✓ Resolved to channel ID: ${data.channelId}`);
+        btn.textContent = '✓'; btn.disabled = false;
+        return;
+      }
+    } catch(e) {}
+  }
+
+  // Could not resolve — ask for channel ID directly
+  setYtStatus('error',
+    'Could not resolve automatically. Please paste your Channel ID (starts with UC…). ' +
+    'Find it at studio.youtube.com → Settings → Channel → Channel ID.');
+  btn.textContent = '↺'; btn.disabled = false;
+}
+
+function setYtStatus(type, msg) {
+  const el = document.getElementById('yt-status');
+  el.className = 'field-status ' + type;
+  el.textContent = msg;
+}
+
+/* ─── Derive HTTP URL from the bridge WS URL ─────────────────────────────── */
+// ws://localhost:8081/  → http://localhost:8082/
+// wss://foo.railway.app/ → https://foo.railway.app/
+function getBridgeHttpUrl() {
+  const wsVal = document.getElementById('discord-ws')?.value.trim() ||
+                'ws://127.0.0.1:8081/';
+  if (!wsVal) return null;
+  try {
+    const u = new URL(wsVal);
+    if (u.hostname === '127.0.0.1' || u.hostname === 'localhost') {
+      // Local: HTTP port is WS port + 1
+      const httpPort = parseInt(u.port || 8081) + 1;
+      return `http://${u.hostname}:${httpPort}`;
+    }
+    // Hosted: same host, HTTPS
+    return `https://${u.host}`;
+  } catch(e) { return null; }
+}
+
+/* ─── Build settings object ──────────────────────────────────────────────── */
+function buildSettings() {
+  const get = (id) => document.getElementById(id)?.value.trim() || '';
+
+  const twitchUrl  = get('twitch-url');
+  const kickUrl    = get('kick-url');
+  const channels   = {};
+  if (twitchUrl)           channels.twitch   = twitchUrl;
+  if (get('youtube-url'))  channels.youtube  = get('youtube-url');
+  if (kickUrl)             channels.kick     = kickUrl;
+  if (get('abstract-url')) channels.abstract = get('abstract-url');
+
+  const twitchSlug    = twitchUrl ? extractSlug(twitchUrl) : '';
+  const kickSlug      = kickUrl   ? extractSlug(kickUrl)   : '';
+  const kickChatroomId= parseInt(document.getElementById('kick-chatroom-id').value) || 0;
+  const youtubeChannelId = document.getElementById('youtube-channel-id').value.trim()
+                        || get('youtube-handle').replace(/^@/,'');
+
+  // Derive the proxy URL from the bridge WS URL
+  const youtubeProxyUrl = getBridgeHttpUrl() || '';
+
+  const discordWs = get('discord-ws') || 'ws://127.0.0.1:8081/';
+
+  return {
+    BRAND_NAME:         get('brand-name') || 'MultiChat',
+    TWITCH_CHANNEL:     twitchSlug,
+    KICK_CHANNEL:       kickSlug,
+    KICK_CHATROOM_ID:   kickChatroomId,
+    YOUTUBE_PROXY_URL:  youtubeProxyUrl,
+    YOUTUBE_API_KEY:    '',   // never stored in the overlay; lives on Railway
+    YOUTUBE_CHANNEL_ID: youtubeChannelId,
+    YOUTUBE_POLL_MS:    8000,
+    ABS_WS_URL:         get('abs-ws-url'),
+    DISCORD_WS_URL:     discordWs,
+    DISCORD_BOT_TOKEN:  get('discord-token'),
+    DISCORD_CHANNEL_ID: get('discord-channel'),
+    CHANNELS:           channels,
+    DEFAULTS: { bgColor: { r:14, g:14, b:16 }, bgAlpha: 1, fontScale: 1 },
+    _setupDone: true,
+  };
+}
+
+/* ─── Save and finish ────────────────────────────────────────────────────── */
+async function saveAndFinish() {
+  const token   = document.getElementById('discord-token').value.trim();
+  const channel = document.getElementById('discord-channel').value.trim();
+  if ((token && !channel) || (!token && channel)) {
+    const msg = document.getElementById('error-3');
+    msg.textContent = token ? 'Please also enter your Discord Channel ID.'
+                            : 'Please also enter your Discord Bot Token.';
+    msg.style.display = 'block';
+    return;
+  }
+  document.getElementById('error-3').style.display = 'none';
+
+  const btn = document.getElementById('save-btn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+
+  const settings = buildSettings();
+
+  if (window.__electronBridge) {
+    await window.__electronBridge.saveSettings(settings);
+    try {
+      const overlayPath = await window.__electronBridge.generateOverlay(settings);
+      if (overlayPath) {
+        document.getElementById('overlay-path').textContent = overlayPath;
+        document.getElementById('overlay-path-wrap').style.display = 'block';
+      } else {
+        document.getElementById('overlay-error').textContent =
+          'Could not generate overlay file automatically. You can find multichat.html in the app folder.';
+        document.getElementById('overlay-error').style.display = 'block';
+      }
+    } catch(e) {
+      console.warn('Overlay generation failed:', e);
+    }
+  }
+
+  btn.disabled = false; btn.textContent = 'Save & Launch →';
+  buildDoneScreen(settings);
+  goTo(4);
+}
+
+/* ─── Done screen ────────────────────────────────────────────────────────── */
+function buildDoneScreen(s) {
+  document.getElementById('done-sub').textContent =
+    `Welcome, ${s.BRAND_NAME}! Your platforms are configured.`;
+  const pills = document.getElementById('done-pills');
+  pills.innerHTML = '';
+  const active = [];
+  if (s.TWITCH_CHANNEL)     active.push(['twitch',   'Twitch']);
+  if (s.YOUTUBE_CHANNEL_ID) active.push(['youtube',  'YouTube']);
+  if (s.KICK_CHANNEL)       active.push(['kick',     'Kick']);
+  if (s.CHANNELS?.abstract) active.push(['abstract', 'Abstract']);
+  if (s.DISCORD_BOT_TOKEN)  active.push(['discord',  'Discord']);
+  active.forEach(([cls, label]) => {
+    const p = document.createElement('span');
+    p.className = 'pill pill-' + cls;
+    p.textContent = '✓ ' + label;
+    pills.appendChild(p);
+  });
+}
+
+function showOverlayInFolder() {
+  const path = document.getElementById('overlay-path').textContent;
+  if (window.__electronBridge?.showInFolder) window.__electronBridge.showInFolder(path);
+}
+
+function launch() {
+  if (window.__electronBridge) window.__electronBridge.openMainApp();
+}
+
+/* ─── Pre-fill when re-opening settings ─────────────────────────────────── */
+async function prefill() {
+  if (!window.__electronBridge) return;
+  const s = await window.__electronBridge.getSettings();
+  if (!s) return;
+  const set = (id, val) => { const el=document.getElementById(id); if(el&&val) el.value=val; };
+  set('brand-name',        s.BRAND_NAME);
+  set('twitch-url',        s.CHANNELS?.twitch);
+  set('kick-url',          s.CHANNELS?.kick);
+  set('youtube-url',       s.CHANNELS?.youtube);
+  set('abstract-url',      s.CHANNELS?.abstract);
+  set('abs-ws-url',        s.ABS_WS_URL);
+  set('discord-token',     s.DISCORD_BOT_TOKEN);
+  set('discord-channel',   s.DISCORD_CHANNEL_ID);
+  set('discord-ws',        s.DISCORD_WS_URL);
+  // Restore resolved values
+  if (s.KICK_CHATROOM_ID) {
+    document.getElementById('kick-chatroom-id').value = s.KICK_CHATROOM_ID;
+    setKickStatus('ok', `✓ Chatroom ID: ${s.KICK_CHATROOM_ID} (already resolved)`);
+    document.getElementById('kick-url').classList.add('ok');
+  }
+  if (s.YOUTUBE_CHANNEL_ID) {
+    document.getElementById('youtube-channel-id').value = s.YOUTUBE_CHANNEL_ID;
+    document.getElementById('youtube-handle').value = s.YOUTUBE_CHANNEL_ID;
+    setYtStatus('ok', `✓ Channel ID: ${s.YOUTUBE_CHANNEL_ID} (already resolved)`);
+    document.getElementById('youtube-handle').classList.add('ok');
+  }
+  if (s._setupDone) {
+    document.getElementById('launch-btn').textContent = 'Save & Relaunch';
+  }
+}
+
+prefill();
+</script>
+</body>
+</html>

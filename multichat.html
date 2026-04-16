@@ -3,58 +3,43 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CriptoEjesus — MultiChat</title>
+<title>MultiChat</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
 
-  /* ── Reset & Base ── */
-  * { 
-    margin: 0; 
-    padding: 0; 
-    box-sizing: border-box; 
-  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
 
   :root {
-    /* Platform Colors */
-    --twitch: #9147ff;
-    --youtube: #ff0000;
-    --kick: #53fc18;
+    --twitch:   #9147ff;
+    --youtube:  #ff0000;
+    --kick:     #53fc18;
     --abstract: #00ffa3;
-    
-    /* Dynamic UI Variables */
-    --bg-alpha: 1;
+    --bg-alpha:   1;
     --font-scale: 1;
-    
-    /* Themed Colors (linked to alpha) */
-    --bg: rgba(14, 14, 16, var(--bg-alpha));
+    --bg:      rgba(14, 14, 16, var(--bg-alpha));
     --surface: rgba(24, 24, 27, var(--bg-alpha));
     --surface2: #1f1f23;
-    --border: rgba(255, 255, 255, 0.07);
-    --text: #efeff1;
-    --muted: #adadb8;
-    
-    /* Typography */
-    --font: 'IBM Plex Sans', sans-serif;
-    --mono: 'IBM Plex Mono', monospace;
+    --border:  rgba(255, 255, 255, 0.07);
+    --text:    #efeff1;
+    --muted:   #adadb8;
+    --font:    'IBM Plex Sans', sans-serif;
+    --mono:    'IBM Plex Mono', monospace;
   }
 
-  /* CRITICAL FOR OBS TRANSPARENCY: 
-     Force the browser engine's floor to be transparent 
-  */
-  html, body { 
-    height: 100%; 
-    background: transparent !important; 
-    color: var(--text); 
-    font-family: var(--font); 
-    overflow: hidden; 
+  html, body {
+    height: 100%;
+    background: transparent !important;
+    color: var(--text);
+    font-family: var(--font);
+    overflow: hidden;
   }
 
-  #app { 
-    display: flex; 
-    flex-direction: column; 
-    height: 100vh; 
-    background: var(--bg); 
-    transition: background 0.1s ease; 
+  #app {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background: var(--bg);
+    transition: background 0.1s ease;
   }
 
   /* ── Header ── */
@@ -69,505 +54,209 @@
     gap: 6px;
   }
 
-  .header-top {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
+  .header-top { display: flex; align-items: center; gap: 8px; }
 
-  .header-left {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-
-  .logo { 
-    font-family: var(--mono); 
-    font-size: 13px; 
-    font-weight: 500; 
-    color: var(--text); 
-    letter-spacing: 0.03em; 
+  .logo {
+    font-family: var(--mono); font-size: 13px; font-weight: 500;
+    color: var(--text); letter-spacing: 0.03em;
   }
 
   .live-badge {
-    font-size: 10px; 
-    font-weight: 600; 
-    letter-spacing: 0.08em;
-    background: #eb0400; 
-    color: #fff;
-    padding: 2px 6px; 
-    border-radius: 3px;
-    text-transform: uppercase;
+    font-size: 10px; font-weight: 600; letter-spacing: 0.08em;
+    background: #eb0400; color: #fff;
+    padding: 2px 6px; border-radius: 3px; text-transform: uppercase;
   }
 
-  /* ── Control Sliders ── */
-  .control-group {
+  /* ── Right-side header button group (UI toggle + settings gear) ── */
+  .header-actions {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 4px;
+    margin-left: auto;
+    flex-shrink: 0;
   }
 
-  .control-label {
-    font-size: 9px;
-    font-family: var(--mono);
+  .header-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: 1px solid var(--border);
     color: var(--muted);
-    text-transform: uppercase;
-    min-width: 26px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+  .header-btn:hover { color: var(--text); border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.05); }
+
+  /* UI toggle — monospace label */
+  .toggle-ui-btn {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.05em;
+    padding: 3px 7px;
+    height: 24px;
+  }
+
+  /* Settings gear — only shown in Electron */
+  .settings-btn {
+    font-size: 14px;
+    width: 24px;
+    height: 24px;
+    display: none;
+  }
+  body.is-electron .settings-btn { display: flex; }
+
+  /* ── Control Sliders ── */
+  .control-group { display: flex; align-items: center; gap: 8px; }
+
+  .control-label {
+    font-size: 9px; font-family: var(--mono);
+    color: var(--muted); text-transform: uppercase; min-width: 26px;
   }
 
   .control-val {
-    font-size: 9px;
-    font-family: var(--mono);
-    color: var(--abstract);
-    min-width: 32px;
-    text-align: right;
+    font-size: 9px; font-family: var(--mono);
+    color: var(--abstract); min-width: 32px; text-align: right;
   }
 
-  input[type="range"] {
-    flex: 1;
-    height: 4px;
-    accent-color: var(--abstract);
-    cursor: pointer;
+  input[type="range"] { flex: 1; height: 4px; accent-color: var(--abstract); cursor: pointer; }
+
+  /* ── Connection Status Dots ── */
+  .status-bar { display: flex; gap: 8px; align-items: center; padding: 3px 0 1px; flex-wrap: wrap; }
+
+  .status-dot {
+    display: flex; align-items: center; gap: 4px;
+    font-size: 9px; font-family: var(--mono);
+    color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em;
   }
 
-  /* ── Filter Tabs ── */
-  .filter-tabs { 
-    display: flex; 
-    gap: 4px; 
-  }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: #444; transition: background 0.3s; flex-shrink: 0; }
+  .dot.connecting { background: #f59e0b; animation: pulse 1.5s infinite; }
+  .dot.connected  { background: #22c55e; }
+  .dot.error      { background: #ef4444; }
 
-  .tab {
-    font-size: 11px; 
-    font-weight: 500; 
-    padding: 3px 8px;
-    border-radius: 4px; 
-    border: 1px solid transparent;
-    cursor: pointer; 
-    transition: all 0.15s; 
-    background: none;
-    color: var(--muted); 
-    font-family: var(--font);
-    display: flex; 
-    align-items: center; 
-    gap: 5px;
-  }
-
-  .tab.active-all    { background: rgba(255, 255, 255, 0.08); color: var(--text); border-color: var(--border); }
-  .tab.active-twitch { background: rgba(145, 71, 255, 0.15); color: var(--twitch); border-color: rgba(145, 71, 255, 0.3); }
-  .tab.active-youtube{ background: rgba(255, 0, 0, 0.12); color: #ff4444; border-color: rgba(255, 0, 0, 0.25); }
-  .tab.active-kick     { background: rgba(83, 252, 24, 0.1); color: var(--kick); border-color: rgba(83, 252, 24, 0.25); }
-  .tab.active-abstract { background: rgba(0, 255, 163, 0.1); color: var(--abstract); border-color: rgba(0, 255, 163, 0.25); }
-  
-  .tab:hover:not([class*="active"]) { 
-    background: rgba(255, 255, 255, 0.04); 
-    color: var(--text); 
-  }
-
-  .tab.icon-tab {
-    padding: 4px 6px;
-    line-height: 0;
-  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
 
   /* ── Footer Counter Buttons ── */
   .counter-btn {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 11px;
-    color: var(--muted);
-    font-family: var(--mono);
-    background: none;
-    border: 1px solid transparent;
-    border-radius: 4px;
-    padding: 3px 7px;
-    cursor: pointer;
-    transition: all 0.15s;
+    display: flex; align-items: center; gap: 5px;
+    font-size: 11px; color: var(--muted); font-family: var(--mono);
+    background: none; border: 1px solid transparent;
+    border-radius: 4px; padding: 3px 7px; cursor: pointer; transition: all 0.15s;
   }
-
-  .counter-btn:hover:not([class*="active"]) {
-    background: rgba(255,255,255,0.05);
-    color: var(--text);
-  }
-
-  .counter-btn.active-all     { background: rgba(255,255,255,0.08); color: var(--text); border-color: var(--border); }
-  .counter-btn.active-twitch  { background: rgba(145,71,255,0.15); color: var(--twitch); border-color: rgba(145,71,255,0.3); }
-  .counter-btn.active-youtube { background: rgba(255,0,0,0.12); color: #ff4444; border-color: rgba(255,0,0,0.25); }
-  .counter-btn.active-kick    { background: rgba(83,252,24,0.1); color: var(--kick); border-color: rgba(83,252,24,0.25); }
-  .counter-btn.active-abstract{ background: rgba(0,255,163,0.1); color: var(--abstract); border-color: rgba(0,255,163,0.25); }
-  .counter-btn.active-discord { background: rgba(114,137,218,0.15); color: #7289da; border-color: rgba(114,137,218,0.3); }
+  .counter-btn:hover:not([class*="active"]) { background: rgba(255,255,255,0.05); color: var(--text); }
+  .counter-btn.active-all      { background: rgba(255,255,255,0.08); color: var(--text);   border-color: var(--border); }
+  .counter-btn.active-twitch   { background: rgba(145,71,255,0.15);  color: var(--twitch); border-color: rgba(145,71,255,0.3); }
+  .counter-btn.active-youtube  { background: rgba(255,0,0,0.12);     color: #ff4444;       border-color: rgba(255,0,0,0.25); }
+  .counter-btn.active-kick     { background: rgba(83,252,24,0.1);    color: var(--kick);   border-color: rgba(83,252,24,0.25); }
+  .counter-btn.active-abstract { background: rgba(0,255,163,0.1);    color: var(--abstract);border-color: rgba(0,255,163,0.25); }
+  .counter-btn.active-discord  { background: rgba(114,137,218,0.15); color: #7289da;       border-color: rgba(114,137,218,0.3); }
 
   /* ── Messages Area ── */
-  #messages {
-    flex: 1; 
-    overflow-y: auto; 
-    padding: 6px 0;
-    scroll-behavior: smooth;
-  }
+  #messages { flex: 1; overflow-y: auto; padding: 6px 0; scroll-behavior: smooth; }
+  #messages::-webkit-scrollbar { width: 4px; }
+  #messages::-webkit-scrollbar-track { background: transparent; }
+  #messages::-webkit-scrollbar-thumb { background: rgba(255,255,255,calc(0.2 * var(--bg-alpha))); border-radius: 2px; }
 
-  /* Custom Scrollbar linked to BG opacity */
-  #messages::-webkit-scrollbar { 
-    width: 4px; 
-  }
-  #messages::-webkit-scrollbar-track { 
-    background: transparent; 
-  }
-  #messages::-webkit-scrollbar-thumb { 
-    background: rgba(255, 255, 255, calc(0.2 * var(--bg-alpha))); 
-    border-radius: 2px; 
-  }
+  .msg { display: flex; align-items: flex-start; gap: 8px; padding: 5px 12px; transition: background 0.1s; }
+  .msg:hover { background: rgba(255,255,255,0.03); }
+  .platform-hidden { display: none !important; }
 
-  .msg {
-    display: flex; 
-    align-items: flex-start; 
-    gap: 8px;
-    padding: 5px 12px; 
-    transition: background 0.1s;
-  }
+  .username { font-size: calc(12px * var(--font-scale)); font-weight: 600; overflow-wrap: anywhere; word-break: break-word; }
+  .u-twitch   { color: var(--twitch); }
+  .u-youtube  { color: #ff4444; }
+  .u-kick     { color: var(--kick); }
+  .u-abstract { color: var(--abstract); }
+  .u-discord  { color: #7289da; }
 
-  .msg:hover { 
-    background: rgba(255, 255, 255, 0.03); 
-  }
+  .timestamp { font-size: calc(10px * var(--font-scale)); color: rgba(173,173,184,0.45); font-family: var(--mono); }
 
-  .platform-hidden { 
-    display: none !important; 
-  }
+  .badge { font-size: calc(9px * var(--font-scale)); font-weight: 600; letter-spacing: 0.05em; padding: 1px 4px; border-radius: 2px; text-transform: uppercase; }
+  .badge-sub { background: rgba(145,71,255,0.2);  color: #c08fff; }
+  .badge-mod { background: rgba(83,252,24,0.12);  color: #7dff6b; }
+  .badge-vip { background: rgba(255,180,0,0.15);  color: #ffcc44; }
 
-  /* ── Chat Content Scaling ── */
-  .username { 
-    font-size: calc(12px * var(--font-scale)); 
-    font-weight: 600; 
-    overflow-wrap: anywhere;
-    word-break: break-word;
-  }
-  
-  .u-twitch    { color: var(--twitch); }
-  .u-youtube   { color: #ff4444; }
-  .u-kick      { color: var(--kick); }
-  .u-abstract  { color: var(--abstract); }
-  .u-discord   { color: #7289da; }
+  .msg-body   { flex: 1; min-width: 0; overflow: hidden; }
+  .msg-header { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
+  .msg-text   { font-size: calc(13px * var(--font-scale)); color: var(--text); line-height: 1.5; margin-top: 1px; word-break: break-word; overflow-wrap: anywhere; }
 
-  .timestamp { 
-    font-size: calc(10px * var(--font-scale)); 
-    color: rgba(173, 173, 184, 0.45); 
-    font-family: var(--mono); 
-  }
-
-  .badge { 
-    font-size: calc(9px * var(--font-scale)); 
-    font-weight: 600; 
-    letter-spacing: 0.05em; 
-    padding: 1px 4px; 
-    border-radius: 2px; 
-    text-transform: uppercase; 
-  }
-  
-  .badge-sub { background: rgba(145, 71, 255, 0.2); color: #c08fff; }
-  .badge-mod { background: rgba(83, 252, 24, 0.12); color: #7dff6b; }
-  .badge-vip { background: rgba(255, 180, 0, 0.15); color: #ffcc44; }
-
-  .msg-body  { 
-    flex: 1; 
-    min-width: 0;
-    overflow: hidden;
-  }
-  
-  .msg-header { 
-    display: flex; 
-    align-items: baseline; 
-    gap: 6px; 
-    flex-wrap: wrap; 
-  }
-  
-  .msg-text  { 
-    font-size: calc(13px * var(--font-scale)); 
-    color: var(--text); 
-    line-height: 1.5; 
-    margin-top: 1px; 
-    word-break: break-word;
-    overflow-wrap: anywhere;
-  }
-
-  .platform-tag {
-    font-size: calc(9px * var(--font-scale)); 
-    font-family: var(--mono); 
-    font-weight: 500;
-    padding: 1px 4px; 
-    border-radius: 2px; 
-    letter-spacing: 0.04em;
-    text-transform: uppercase; 
-    flex-shrink: 0; 
-    margin-top: 3px;
-  }
-  
-  .pt-twitch   { background: rgba(145, 71, 255, 0.15); color: #c08fff; }
-  .pt-youtube  { background: rgba(255, 0, 0, 0.12); color: #ff8080; }
-  .pt-kick     { background: rgba(83, 252, 24, 0.1); color: #7dff6b; }
-  .pt-abstract { background: rgba(0, 255, 163, 0.1); color: #00ffa3; }
-  .pt-discord  { background: rgba(114, 137, 218, 0.15); color: #7289da; }
+  .platform-tag { font-size: calc(9px * var(--font-scale)); font-family: var(--mono); font-weight: 500; padding: 1px 4px; border-radius: 2px; letter-spacing: 0.04em; text-transform: uppercase; flex-shrink: 0; margin-top: 3px; }
+  .pt-twitch   { background: rgba(145,71,255,0.15);  color: #c08fff; }
+  .pt-youtube  { background: rgba(255,0,0,0.12);      color: #ff8080; }
+  .pt-kick     { background: rgba(83,252,24,0.1);     color: #7dff6b; }
+  .pt-abstract { background: rgba(0,255,163,0.1);     color: #00ffa3; }
+  .pt-discord  { background: rgba(114,137,218,0.15);  color: #7289da; }
 
   /* ── Links Bar ── */
-  .links-bar {
-    display: flex; 
-    gap: 6px; 
-    padding: 6px 12px;
-    background: rgba(0, 0, 0, 0.2);
-    border-bottom: 1px solid var(--border);
-    flex-shrink: 0;
-    overflow-x: auto;
-    /* Invisible horizontal scroll */
-    scrollbar-width: none; 
-    -ms-overflow-style: none; 
-  }
-  
-  .links-bar::-webkit-scrollbar { 
-    display: none; 
-  }
-
-  .stream-link {
-    font-size: 10px; 
-    font-family: var(--mono);
-    padding: 2px 7px; 
-    border-radius: 3px;
-    text-decoration: none; 
-    font-weight: 500;
-    transition: opacity 0.15s;
-    white-space: nowrap;
-  }
-  
+  .links-bar { display: flex; gap: 6px; padding: 6px 12px; background: rgba(0,0,0,0.2); border-bottom: 1px solid var(--border); flex-shrink: 0; overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none; }
+  .links-bar::-webkit-scrollbar { display: none; }
+  .stream-link { font-size: 10px; font-family: var(--mono); padding: 2px 7px; border-radius: 3px; text-decoration: none; font-weight: 500; transition: opacity 0.15s; white-space: nowrap; }
   .stream-link:hover { opacity: 0.75; }
-  .sl-twitch    { background: rgba(145, 71, 255, 0.15); color: #c08fff; }
-  .sl-youtube   { background: rgba(255, 0, 0, 0.12); color: #ff8080; }
-  .sl-kick      { background: rgba(83, 252, 24, 0.1); color: #7dff6b; }
-  .sl-abstract  { background: rgba(0, 255, 163, 0.1); color: #00ffa3; }
+  .sl-twitch   { background: rgba(145,71,255,0.15);  color: #c08fff; }
+  .sl-youtube  { background: rgba(255,0,0,0.12);      color: #ff8080; }
+  .sl-kick     { background: rgba(83,252,24,0.1);     color: #7dff6b; }
+  .sl-abstract { background: rgba(0,255,163,0.1);     color: #00ffa3; }
 
   /* ── Footer ── */
-  footer {
-    padding: 8px 12px;
-    background: var(--surface);
-    border-top: 1px solid var(--border);
-    display: flex; 
-    align-items: center; 
-    justify-content: space-between;
-    flex-shrink: 0;
-    gap: 8px;
-  }
+  footer { padding: 8px 12px; background: var(--surface); border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; gap: 8px; }
+  .counters { display: flex; gap: 8px; flex-wrap: wrap; }
 
-  .counters { 
-    display: flex; 
-    gap: 12px; 
-    flex-wrap: wrap; 
-  }
-  
-  .counter { 
-    font-size: 11px; 
-    color: var(--muted); 
-    font-family: var(--mono); 
-    display: flex; 
-    align-items: center; 
-    gap: 4px; 
-  }
-  
-  .counter-num { 
-    font-weight: 500; 
-    color: var(--text); 
-  }
+  .auto-scroll-btn { font-size: 11px; font-weight: 500; padding: 3px 8px; border-radius: 4px; border: 1px solid var(--border); background: none; color: var(--muted); cursor: pointer; font-family: var(--font); transition: all 0.15s; white-space: nowrap; }
+  .auto-scroll-btn.on { border-color: rgba(145,71,255,0.4); color: var(--twitch); background: rgba(145,71,255,0.08); }
+  .auto-scroll-btn:hover { background: rgba(255,255,255,0.05); }
 
-  .auto-scroll-btn {
-    font-size: 11px; 
-    font-weight: 500; 
-    padding: 3px 8px;
-    border-radius: 4px; 
-    border: 1px solid var(--border);
-    background: none; 
-    color: var(--muted); 
-    cursor: pointer;
-    font-family: var(--font); 
-    transition: all 0.15s;
-    white-space: nowrap;
-  }
-  
-  .auto-scroll-btn.on { 
-    border-color: rgba(145, 71, 255, 0.4); 
-    color: var(--twitch); 
-    background: rgba(145, 71, 255, 0.08); 
-  }
-  
-  .auto-scroll-btn:hover { 
-    background: rgba(255, 255, 255, 0.05); 
-  }
+  /* ── UI hidden state — collapses controls, keeps button strip accessible ── */
+  .ui-hidden .header-left  { display: none !important; }
+  .ui-hidden .links-bar    { display: none !important; }
+  .ui-hidden footer        { display: none !important; }
+  .ui-hidden header        { padding: 4px 8px; gap: 0; background: transparent; border-bottom-color: transparent; }
+  .ui-hidden .logo,
+  .ui-hidden .live-badge   { opacity: 0; pointer-events: none; width: 0; overflow: hidden; padding: 0; margin: 0; }
+  .ui-hidden .header-actions { opacity: 0.15; transition: opacity 0.2s; }
+  .ui-hidden .header-actions:hover { opacity: 1; }
 
-  /* ── UI Toggle Button ── */
-  .toggle-ui-btn {
-    position: fixed;
-    top: 6px;
-    right: 6px;
-    z-index: 999;
-    background: rgba(255,255,255,0.07);
-    border: 1px solid var(--border);
-    color: var(--muted);
-    font-family: var(--mono);
-    font-size: 9px;
-    padding: 3px 7px;
-    border-radius: 3px;
-    cursor: pointer;
-    letter-spacing: 0.05em;
-    transition: opacity 0.2s;
-    opacity: 0.35;
-  }
+  /* ── Empty State ── */
+  .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 8px; color: var(--muted); padding: 2rem; }
+  .empty-state p { font-size: 13px; text-align: center; line-height: 1.7; }
 
-  .toggle-ui-btn:hover {
-    opacity: 1;
-    color: var(--text);
-    background: rgba(255,255,255,0.12);
-  }
-
-  /* When hidden, collapse header, links bar, and footer */
-  .ui-hidden header,
-  .ui-hidden .links-bar,
-  .ui-hidden footer {
-    display: none !important;
-  }
-
-  /* Button fades out in hidden mode, reappears on hover */
-  .ui-hidden .toggle-ui-btn {
-    opacity: 0;
-  }
-  .ui-hidden .toggle-ui-btn:hover {
-    opacity: 1;
-  }
-
-  /* ── Send Bar ── */
-  .send-bar {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 10px;
-    background: var(--surface);
-    border-top: 1px solid var(--border);
-    flex-shrink: 0;
-  }
-
-  .send-input {
-    flex: 1;
-    background: rgba(255,255,255,0.06);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    color: var(--text);
-    font-family: var(--font);
-    font-size: 12px;
-    padding: 5px 10px;
-    outline: none;
-    transition: border-color 0.15s;
-  }
-
-  .send-input:focus {
-    border-color: rgba(255,255,255,0.2);
-  }
-
-  .send-input::placeholder {
-    color: var(--muted);
-    opacity: 0.6;
-  }
-
-  .send-btn {
-    background: rgba(255,255,255,0.08);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    color: var(--text);
-    font-family: var(--mono);
-    font-size: 10px;
-    padding: 5px 10px;
-    cursor: pointer;
-    transition: all 0.15s;
-    white-space: nowrap;
-    flex-shrink: 0;
-  }
-
-  .send-btn:hover {
-    background: rgba(255,255,255,0.14);
-    border-color: rgba(255,255,255,0.2);
-  }
-
-  .send-btn:active {
-    transform: scale(0.97);
-  }
-
-  .send-btn.sending {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-
-  /* Hide send bar when UI is hidden */
-  .ui-hidden .send-bar {
-    display: none !important;
-  }
-
-  .empty-state {
-    display: flex; 
-    flex-direction: column; 
-    align-items: center; 
-    justify-content: center;
-    height: 100%; 
-    gap: 8px; 
-    color: var(--muted); 
-    padding: 2rem;
-  }
-  
-  .empty-state p { 
-    font-size: 13px; 
-    text-align: center; 
-    line-height: 1.7; 
-  }
+  /* ── Color Picker ── */
+  #color-picker { display: none; position: absolute; top: calc(100% + 6px); left: 0; z-index: 1000; background: #1a1a1d; border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; padding: 12px; width: 220px; box-shadow: 0 8px 32px rgba(0,0,0,0.6); }
 </style>
 </head>
 <body>
 <div id="app">
 
-  <button class="toggle-ui-btn" onclick="toggleUI()" title="Hide/show UI">UI</button>
-
   <header>
     <div class="header-top">
-      <span class="logo">criptoejesus</span>
+      <span class="logo" id="brand-name">MultiChat</span>
       <span class="live-badge">live</span>
+      <div class="header-actions">
+        <button class="header-btn toggle-ui-btn" onclick="toggleUI()" title="Hide/show UI chrome">UI</button>
+        <button class="header-btn settings-btn"  onclick="openSettings()" title="Settings">⚙</button>
+      </div>
     </div>
     <div class="header-left">
       <div class="control-group" style="position:relative;">
         <label class="control-label">BG</label>
-        <button id="color-swatch" onclick="toggleColorPicker()" title="Pick background color" style="
-          width:22px; height:14px; border-radius:3px; border:1px solid rgba(255,255,255,0.2);
-          background:#0e0e10; cursor:pointer; flex-shrink:0; padding:0;
-        "></button>
+        <button id="color-swatch" onclick="toggleColorPicker()" title="Pick background color" style="width:22px;height:14px;border-radius:3px;border:1px solid rgba(255,255,255,0.2);background:#0e0e10;cursor:pointer;flex-shrink:0;padding:0;"></button>
         <input type="range" id="bg-alpha-slider" min="0" max="1" step="0.01" value="1">
         <span class="control-val" id="bg-val">100%</span>
-        <!-- Color picker popover -->
-        <div id="color-picker" style="display:none; position:absolute; top:calc(100% + 6px); left:0; z-index:1000;
-          background:#1a1a1d; border:1px solid rgba(255,255,255,0.12); border-radius:8px;
-          padding:12px; width:220px; box-shadow:0 8px 32px rgba(0,0,0,0.6);">
-          <!-- Color wheel canvas -->
-          <canvas id="color-wheel" width="196" height="196" style="border-radius:50%; cursor:crosshair; display:block;"></canvas>
-          <!-- Lightness slider -->
+        <div id="color-picker">
+          <canvas id="color-wheel" width="196" height="196" style="border-radius:50%;cursor:crosshair;display:block;"></canvas>
           <div style="margin-top:10px;">
-            <div style="font-size:9px; font-family:var(--mono); color:var(--muted); margin-bottom:4px;">LIGHTNESS</div>
-            <input type="range" id="lightness-slider" min="0" max="100" value="8" style="width:100%; accent-color:var(--abstract);">
+            <div style="font-size:9px;font-family:var(--mono);color:var(--muted);margin-bottom:4px;">LIGHTNESS</div>
+            <input type="range" id="lightness-slider" min="0" max="100" value="8" style="width:100%;accent-color:var(--abstract);">
           </div>
-          <!-- Hex input -->
-          <div style="margin-top:8px; display:flex; gap:6px; align-items:center;">
-            <div style="font-size:9px; font-family:var(--mono); color:var(--muted);">HEX</div>
-            <input type="text" id="hex-input" value="#0e0e10" style="
-              flex:1; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1);
-              color:var(--text); font-family:var(--mono); font-size:11px;
-              padding:3px 7px; border-radius:4px; outline:none;
-            ">
-            <button onclick="applyHex()" style="
-              background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.12);
-              color:var(--text); font-family:var(--mono); font-size:9px;
-              padding:3px 8px; border-radius:4px; cursor:pointer;
-            ">OK</button>
+          <div style="margin-top:8px;display:flex;gap:6px;align-items:center;">
+            <div style="font-size:9px;font-family:var(--mono);color:var(--muted);">HEX</div>
+            <input type="text" id="hex-input" value="#0e0e10" style="flex:1;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-family:var(--mono);font-size:11px;padding:3px 7px;border-radius:4px;outline:none;">
+            <button onclick="applyHex()" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);color:var(--text);font-family:var(--mono);font-size:9px;padding:3px 8px;border-radius:4px;cursor:pointer;">OK</button>
           </div>
-          <!-- Presets -->
           <div style="margin-top:10px;">
-            <div style="font-size:9px; font-family:var(--mono); color:var(--muted); margin-bottom:5px;">PRESETS</div>
-            <div style="display:flex; gap:5px; flex-wrap:wrap;" id="presets"></div>
+            <div style="font-size:9px;font-family:var(--mono);color:var(--muted);margin-bottom:5px;">PRESETS</div>
+            <div style="display:flex;gap:5px;flex-wrap:wrap;" id="presets"></div>
           </div>
         </div>
       </div>
@@ -576,14 +265,18 @@
         <input type="range" id="font-slider" min="0.5" max="2" step="0.05" value="1">
         <span class="control-val" id="font-val">100%</span>
       </div>
+      <div class="status-bar" id="status-bar">
+        <div class="status-dot"><span class="dot" id="dot-twitch"></span>TW</div>
+        <div class="status-dot"><span class="dot" id="dot-youtube"></span>YT</div>
+        <div class="status-dot"><span class="dot" id="dot-kick"></span>KC</div>
+        <div class="status-dot"><span class="dot" id="dot-abstract"></span>ABS</div>
+        <div class="status-dot"><span class="dot" id="dot-discord"></span>DC</div>
+      </div>
     </div>
   </header>
 
-  <div class="links-bar">
-    <a class="stream-link sl-twitch"    href="https://twitch.tv/criptoejesus"    target="_blank">Twitch</a>
-    <a class="stream-link sl-youtube"   href="https://youtube.com/@criptoejesus" target="_blank">YouTube</a>
-    <a class="stream-link sl-kick"      href="https://kick.com/criptoejesus"     target="_blank">Kick</a>
-    <a class="stream-link sl-abstract"  href="https://portal.abs.xyz/stream/criptoejesus" target="_blank">Abstract</a>
+  <div class="links-bar" id="links-bar">
+    <!-- populated by JS from CONFIG -->
   </div>
 
   <div id="messages">
@@ -594,24 +287,24 @@
 
   <footer>
     <div class="counters">
-      <button class="counter-btn active-all" id="fbtn-all" onclick="setFilter('all', this)" data-filter="all" title="All platforms">All</button>
-      <button class="counter-btn" id="fbtn-twitch" onclick="setFilter('twitch', this)" data-filter="twitch" title="Twitch only">
+      <button class="counter-btn active-all" id="fbtn-all"      onclick="setFilter('all')"      title="All platforms">All</button>
+      <button class="counter-btn"            id="fbtn-twitch"   onclick="setFilter('twitch')"   title="Twitch only">
         <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/></svg>
         <span id="cnt-twitch">0</span>
       </button>
-      <button class="counter-btn" id="fbtn-youtube" onclick="setFilter('youtube', this)" data-filter="youtube" title="YouTube only">
+      <button class="counter-btn"            id="fbtn-youtube"  onclick="setFilter('youtube')"  title="YouTube only">
         <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0"><path d="M23.495 6.205a3.007 3.007 0 0 0-2.088-2.088c-1.87-.501-9.396-.501-9.396-.501s-7.507-.01-9.396.501A3.007 3.007 0 0 0 .527 6.205a31.247 31.247 0 0 0-.522 5.805 31.247 31.247 0 0 0 .522 5.783 3.007 3.007 0 0 0 2.088 2.088c1.868.502 9.396.502 9.396.502s7.506 0 9.396-.502a3.007 3.007 0 0 0 2.088-2.088 31.247 31.247 0 0 0 .5-5.783 31.247 31.247 0 0 0-.5-5.805zM9.609 15.601V8.408l6.264 3.602z"/></svg>
         <span id="cnt-youtube">0</span>
       </button>
-      <button class="counter-btn" id="fbtn-kick" onclick="setFilter('kick', this)" data-filter="kick" title="Kick only">
+      <button class="counter-btn"            id="fbtn-kick"     onclick="setFilter('kick')"     title="Kick only">
         <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0"><path d="M3 2h4v8l5-8h5l-5 8 5 8h-5l-5-8v8H3z"/></svg>
         <span id="cnt-kick">0</span>
       </button>
-      <button class="counter-btn" id="fbtn-abstract" onclick="setFilter('abstract', this)" data-filter="abstract" title="Abstract only">
+      <button class="counter-btn"            id="fbtn-abstract" onclick="setFilter('abstract')" title="Abstract only">
         <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0"><path d="M12 2L3 7v10l9 5 9-5V7L12 2zm0 2.18L19 8.1v7.8l-7 3.92-7-3.92V8.1l7-3.92z"/></svg>
         <span id="cnt-abstract">0</span>
       </button>
-      <button class="counter-btn" id="fbtn-discord" onclick="setFilter('discord', this)" data-filter="discord" title="Discord only">
+      <button class="counter-btn"            id="fbtn-discord"  onclick="setFilter('discord')"  title="Discord only">
         <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057c.002.022.015.045.036.057a19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .036-.057c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
         <span id="cnt-discord">0</span>
       </button>
@@ -619,235 +312,215 @@
     <button class="auto-scroll-btn on" id="scroll-btn" onclick="toggleAutoScroll()">⬆️⬇️</button>
   </footer>
 
-  <div class="send-bar" id="send-bar">
-    <input
-      class="send-input"
-      id="send-input"
-      type="text"
-      placeholder="Send to all platforms…"
-      maxlength="500"
-      onkeydown="if(event.key==='Enter') sendToAll()"
-    >
-    <button class="send-btn" id="send-btn" onclick="sendToAll()">
-      Send to All
-    </button>
-  </div>
-
 </div>
 
-<script src="config.js"></script>
+<!-- ═══════════════════════════════════════════════════════════════════
+     CONFIG — Generated by the Setup wizard. When using as a
+     standalone OBS overlay, edit the values below directly.
+     ═══════════════════════════════════════════════════════════════════ -->
+<!-- MULTICHAT_CONFIG_START -->
 <script>
-/* ── State Management ── */
-let filter = 'all';
-let sbWs = null;
-let autoScroll = true;
-let counts = { twitch: 0, youtube: 0, kick: 0, abstract: 0, discord: 0 };
+const CONFIG = {
+  // Channel name (lowercase) — no token needed
+  TWITCH_CHANNEL: '',
 
+  // YouTube — set YOUTUBE_PROXY_URL to your Railway bridge URL
+  // (no API key needed in the overlay — key lives on the server)
+  // OR set YOUTUBE_API_KEY + YOUTUBE_CHANNEL_ID to call YouTube directly
+  YOUTUBE_PROXY_URL:  '', // e.g. 'https://your-app.up.railway.app'
+  YOUTUBE_API_KEY:    '', // only needed if NOT using a proxy
+  YOUTUBE_CHANNEL_ID: '', // UC... channel ID
+  YOUTUBE_POLL_MS:    8000,
+
+  // Kick — KICK_CHATROOM_ID is looked up once during Setup and stored here
+  // Find it manually: kick.com/api/v2/channels/YOUR_SLUG → chatroom.id
+  KICK_CHANNEL:     '',
+  KICK_CHATROOM_ID: 0,
+
+  // Abstract Chat WebSocket
+  ABS_WS_URL: '',
+
+  // Discord Bridge (discord-bridge.js local or Railway)
+  DISCORD_WS_URL: '',
+
+  // Branding
+  BRAND_NAME: 'MultiChat',
+
+  // Stream links in the header bar
+  CHANNELS: {},
+
+  // Default appearance (first launch only — saved automatically after)
+  DEFAULTS: { bgColor: { r: 14, g: 14, b: 16 }, bgAlpha: 1, fontScale: 1 },
+};
+</script>
+<!-- MULTICHAT_CONFIG_END -->
+
+<script>
+/* ─── ELECTRON SETTINGS BRIDGE ─────────────────────────────────────────── */
+async function loadElectronSettings() {
+  if (!window.__electronBridge) return;
+  document.body.classList.add('is-electron');
+  const s = await window.__electronBridge.getSettings();
+  if (!s) return;
+  const keys = ['TWITCH_CHANNEL','YOUTUBE_PROXY_URL','YOUTUBE_API_KEY',
+    'YOUTUBE_CHANNEL_ID','YOUTUBE_POLL_MS','KICK_CHANNEL','KICK_CHATROOM_ID',
+    'ABS_WS_URL','DISCORD_WS_URL','BRAND_NAME'];
+  keys.forEach(k => { if (s[k] != null && s[k] !== '') CONFIG[k] = s[k]; });
+  if (s.CHANNELS && Object.keys(s.CHANNELS).length) CONFIG.CHANNELS = s.CHANNELS;
+}
+
+function openSettings() {
+  if (window.__electronBridge) window.__electronBridge.reopenSetup();
+}
+
+/* ─── STATE ─────────────────────────────────────────────────────────────── */
+let filter = 'all', autoScroll = true;
+let counts = { twitch:0, youtube:0, kick:0, abstract:0, discord:0 };
 const msgContainer = document.getElementById('messages');
 const emptyState   = document.getElementById('empty');
 
-/* ── Settings Persistence ── */
+/* ─── SETTINGS PERSISTENCE (UI prefs) ──────────────────────────────────── */
 const SETTINGS_KEY = 'multichat_settings';
+function loadSettings()      { try{return JSON.parse(localStorage.getItem(SETTINGS_KEY))||{};}catch(e){return{};} }
+function saveSettings(patch) { localStorage.setItem(SETTINGS_KEY,JSON.stringify({...loadSettings(),...patch})); }
 
-function loadSettings() {
-  try {
-    return JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {};
-  } catch(e) { return {}; }
-}
+/* ─── STATUS DOTS ───────────────────────────────────────────────────────── */
+function setStatus(p, s) { const d=document.getElementById('dot-'+p); if(d) d.className='dot'+(s?' '+s:''); }
 
-function saveSettings(patch) {
-  const current = loadSettings();
-  localStorage.setItem(SETTINGS_KEY, JSON.stringify({ ...current, ...patch }));
-}
-
-/* ── Color Picker ── */
-const _s = loadSettings();
-const _d = (typeof CONFIG !== 'undefined' && CONFIG.DEFAULTS) || { bgColor: { r:14,g:14,b:16 }, bgAlpha: 1, fontScale: 1 };
-let bgColor = _s.bgColor || _d.bgColor;
-let bgAlpha = _s.bgAlpha !== undefined ? _s.bgAlpha : _d.bgAlpha;
+/* ─── COLOR PICKER ──────────────────────────────────────────────────────── */
+const _s=loadSettings(), _d=CONFIG.DEFAULTS||{bgColor:{r:14,g:14,b:16},bgAlpha:1,fontScale:1};
+let bgColor=_s.bgColor||_d.bgColor, bgAlpha=_s.bgAlpha!==undefined?_s.bgAlpha:_d.bgAlpha;
 
 function updateBg() {
-  const { r, g, b } = bgColor;
+  const {r,g,b}=bgColor;
   document.documentElement.style.setProperty('--bg',      `rgba(${r},${g},${b},${bgAlpha})`);
   document.documentElement.style.setProperty('--surface', `rgba(${Math.min(r+10,255)},${Math.min(g+10,255)},${Math.min(b+10,255)},${bgAlpha})`);
-  document.getElementById('color-swatch').style.background = `rgba(${r},${g},${b},1)`;
-  document.getElementById('bg-val').textContent = Math.round(bgAlpha * 100) + '%';
-  document.getElementById('bg-alpha-slider').value = bgAlpha;
-  saveSettings({ bgColor, bgAlpha });
+  document.getElementById('color-swatch').style.background=`rgba(${r},${g},${b},1)`;
+  document.getElementById('bg-val').textContent=Math.round(bgAlpha*100)+'%';
+  document.getElementById('bg-alpha-slider').value=bgAlpha;
+  saveSettings({bgColor,bgAlpha});
 }
 
-document.getElementById('bg-alpha-slider').addEventListener('input', (e) => {
-  bgAlpha = parseFloat(e.target.value);
-  updateBg();
-});
+document.getElementById('bg-alpha-slider').addEventListener('input',e=>{bgAlpha=parseFloat(e.target.value);updateBg();});
 
 function toggleColorPicker() {
-  const picker = document.getElementById('color-picker');
-  if (picker.style.display === 'none') {
-    picker.style.display = 'block';
-    drawWheel();
-  } else {
-    picker.style.display = 'none';
-  }
+  const p=document.getElementById('color-picker'),open=p.style.display==='block';
+  p.style.display=open?'none':'block'; if(!open)drawWheel();
 }
 
-// Close picker when clicking outside
-document.addEventListener('click', (e) => {
-  const picker = document.getElementById('color-picker');
-  const swatch = document.getElementById('color-swatch');
-  if (picker.style.display !== 'none' && !picker.contains(e.target) && e.target !== swatch) {
-    picker.style.display = 'none';
-  }
+document.addEventListener('click',e=>{
+  const p=document.getElementById('color-picker'),sw=document.getElementById('color-swatch');
+  if(p.style.display==='block'&&!p.contains(e.target)&&e.target!==sw) p.style.display='none';
 });
 
 function drawWheel() {
-  const canvas = document.getElementById('color-wheel');
-  const ctx = canvas.getContext('2d');
-  const cx = canvas.width / 2, cy = canvas.height / 2, r = cx;
-  const lightness = parseInt(document.getElementById('lightness-slider').value);
-
-  for (let y = 0; y < canvas.height; y++) {
-    for (let x = 0; x < canvas.width; x++) {
-      const dx = x - cx, dy = y - cy;
-      const dist = Math.sqrt(dx*dx + dy*dy);
-      if (dist > r) continue;
-      const hue = (Math.atan2(dy, dx) * 180 / Math.PI + 360) % 360;
-      const sat = (dist / r) * 100;
-      ctx.fillStyle = `hsl(${hue},${sat}%,${lightness + (100-lightness) * (1 - dist/r) * 0.15}%)`;
-      ctx.fillRect(x, y, 1, 1);
-    }
-  }
+  const c=document.getElementById('color-wheel'),ctx=c.getContext('2d');
+  const cx=c.width/2,cy=c.height/2,r=cx,L=parseInt(document.getElementById('lightness-slider').value);
+  for(let y=0;y<c.height;y++){for(let x=0;x<c.width;x++){
+    const dx=x-cx,dy=y-cy,dist=Math.sqrt(dx*dx+dy*dy);
+    if(dist>r)continue;
+    ctx.fillStyle=`hsl(${(Math.atan2(dy,dx)*180/Math.PI+360)%360},${(dist/r)*100}%,${L+(100-L)*(1-dist/r)*0.15}%)`;
+    ctx.fillRect(x,y,1,1);
+  }}
 }
 
-document.getElementById('color-wheel').addEventListener('click', (e) => {
-  const canvas = document.getElementById('color-wheel');
-  const rect = canvas.getBoundingClientRect();
-  const x = (e.clientX - rect.left) * (canvas.width / rect.width);
-  const y = (e.clientY - rect.top) * (canvas.height / rect.height);
-  const ctx = canvas.getContext('2d');
-  const px = ctx.getImageData(Math.round(x), Math.round(y), 1, 1).data;
-  bgColor = { r: px[0], g: px[1], b: px[2] };
-  document.getElementById('hex-input').value = rgbToHex(px[0], px[1], px[2]);
-  updateBg(); // updateBg already calls saveSettings
+document.getElementById('color-wheel').addEventListener('click',e=>{
+  const c=document.getElementById('color-wheel'),rect=c.getBoundingClientRect();
+  const x=(e.clientX-rect.left)*(c.width/rect.width),y=(e.clientY-rect.top)*(c.height/rect.height);
+  const px=c.getContext('2d').getImageData(Math.round(x),Math.round(y),1,1).data;
+  bgColor={r:px[0],g:px[1],b:px[2]};
+  document.getElementById('hex-input').value=rgbToHex(px[0],px[1],px[2]);
+  updateBg();
 });
 
-document.getElementById('lightness-slider').addEventListener('input', () => drawWheel());
+document.getElementById('lightness-slider').addEventListener('input',()=>drawWheel());
 
-function rgbToHex(r, g, b) {
-  return '#' + [r,g,b].map(v => v.toString(16).padStart(2,'0')).join('');
-}
+function rgbToHex(r,g,b){return'#'+[r,g,b].map(v=>v.toString(16).padStart(2,'0')).join('');}
+function hexToRgb(hex){const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return isNaN(r)?null:{r,g,b};}
+function applyHex(){const rgb=hexToRgb(document.getElementById('hex-input').value);if(rgb){bgColor=rgb;updateBg();}}
+document.getElementById('hex-input').addEventListener('keydown',e=>{if(e.key==='Enter')applyHex();});
 
-function hexToRgb(hex) {
-  const r = parseInt(hex.slice(1,3),16);
-  const g = parseInt(hex.slice(3,5),16);
-  const b = parseInt(hex.slice(5,7),16);
-  return isNaN(r) ? null : {r,g,b};
-}
-
-function applyHex() {
-  const rgb = hexToRgb(document.getElementById('hex-input').value);
-  if (rgb) { bgColor = rgb; updateBg(); } // updateBg calls saveSettings
-}
-
-document.getElementById('hex-input').addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') applyHex();
-});
-
-// Presets
-const presets = ['#0e0e10','#000000','#1a0a2e','#0a1628','#0d1f0d','#1a1a1a','#2d1b00','#1a0000','#ffffff'];
-const presetsEl = document.getElementById('presets');
-presets.forEach(hex => {
-  const btn = document.createElement('button');
-  btn.style.cssText = `width:22px;height:22px;border-radius:4px;border:1px solid rgba(255,255,255,0.15);background:${hex};cursor:pointer;padding:0;`;
-  btn.title = hex;
-  btn.onclick = () => {
-    const rgb = hexToRgb(hex);
-    if (rgb) { bgColor = rgb; document.getElementById('hex-input').value = hex; updateBg(); } // updateBg calls saveSettings
-  };
+const presets=['#0e0e10','#000000','#1a0a2e','#0a1628','#0d1f0d','#1a1a1a','#2d1b00','#1a0000','#ffffff'];
+const presetsEl=document.getElementById('presets');
+presets.forEach(hex=>{
+  const btn=document.createElement('button');
+  btn.style.cssText=`width:22px;height:22px;border-radius:4px;border:1px solid rgba(255,255,255,0.15);background:${hex};cursor:pointer;padding:0;`;
+  btn.title=hex;
+  btn.onclick=()=>{const rgb=hexToRgb(hex);if(rgb){bgColor=rgb;document.getElementById('hex-input').value=hex;updateBg();}};
   presetsEl.appendChild(btn);
 });
 
-// Restore hex display to match saved color
-document.getElementById('hex-input').value = rgbToHex(bgColor.r, bgColor.g, bgColor.b);
+document.getElementById('hex-input').value=rgbToHex(bgColor.r,bgColor.g,bgColor.b);
 updateBg();
 
-/* Restore saved font scale */
-(function() {
-  const saved = loadSettings();
-  const defScale = (typeof CONFIG !== 'undefined' && CONFIG.DEFAULTS?.fontScale) || 1;
-  const savedScale = saved.fontScale !== undefined ? saved.fontScale : defScale;
-  if (savedScale !== 1 || saved.fontScale !== undefined) {
-    const s = parseFloat(savedScale);
-    document.getElementById('font-slider').value = s;
-    document.documentElement.style.setProperty('--font-scale', s);
-    document.getElementById('font-val').textContent = Math.round(s * 100) + '%';
-  }
+(function(){
+  const saved=loadSettings(),def=CONFIG.DEFAULTS?.fontScale||1;
+  const sc=saved.fontScale!==undefined?saved.fontScale:def;
+  document.getElementById('font-slider').value=sc;
+  document.documentElement.style.setProperty('--font-scale',sc);
+  document.getElementById('font-val').textContent=Math.round(sc*100)+'%';
 })();
 
-document.getElementById('font-slider').addEventListener('input', (e) => {
-  const val = parseFloat(e.target.value);
-  document.documentElement.style.setProperty('--font-scale', val);
-  document.getElementById('font-val').textContent = Math.round(val * 100) + '%';
-  saveSettings({ fontScale: val });
+document.getElementById('font-slider').addEventListener('input',e=>{
+  const v=parseFloat(e.target.value);
+  document.documentElement.style.setProperty('--font-scale',v);
+  document.getElementById('font-val').textContent=Math.round(v*100)+'%';
+  saveSettings({fontScale:v});
 });
 
-/* ── Filtering ── */
-function setFilter(f, btn) {
-  filter = f;
-  // Update footer counter buttons
-  document.querySelectorAll('.counter-btn').forEach(b => {
-    b.classList.remove('active-all','active-twitch','active-youtube','active-kick','active-abstract','active-discord');
-  });
-  const fbtn = document.getElementById('fbtn-' + f);
-  if (fbtn) fbtn.classList.add('active-' + f);
-  // Filter messages
-  document.querySelectorAll('.msg').forEach(m => {
-    m.classList.toggle('platform-hidden', f !== 'all' && m.dataset.platform !== f);
-  });
+/* ─── FILTERING ─────────────────────────────────────────────────────────── */
+function setFilter(f) {
+  filter=f;
+  document.querySelectorAll('.counter-btn').forEach(b=>b.className='counter-btn');
+  const fb=document.getElementById('fbtn-'+f); if(fb)fb.classList.add('active-'+f);
+  document.querySelectorAll('.msg').forEach(m=>m.classList.toggle('platform-hidden',f!=='all'&&m.dataset.platform!==f));
 }
 
-/* ── Scrolling Logic ── */
 function toggleAutoScroll() {
-  // Auto-scroll locked on
+  autoScroll=!autoScroll;
+  document.getElementById('scroll-btn').classList.toggle('on',autoScroll);
 }
 
-// Auto-scroll is always on — scroll listener removed
+/* ─── BRANDING / LINKS ──────────────────────────────────────────────────── */
+function applyBranding() {
+  document.getElementById('brand-name').textContent=CONFIG.BRAND_NAME||'MultiChat';
+  document.title=(CONFIG.BRAND_NAME||'MultiChat')+' — MultiChat';
+  const bar=document.getElementById('links-bar');
+  bar.innerHTML='';
+  const cls={twitch:'sl-twitch',youtube:'sl-youtube',kick:'sl-kick',abstract:'sl-abstract'};
+  const lbl={twitch:'Twitch',youtube:'YouTube',kick:'Kick',abstract:'Abstract'};
+  Object.entries(CONFIG.CHANNELS||{}).forEach(([k,url])=>{
+    if(!url)return;
+    const a=document.createElement('a');
+    a.className=`stream-link ${cls[k]||''}`;
+    a.href=url; a.target='_blank'; a.textContent=lbl[k]||k;
+    bar.appendChild(a);
+  });
+}
 
-/* ── Platform UI Configuration ── */
-const platformData = {
-  twitch:   { tag: 'pt-twitch',   uClass: 'u-twitch',   label: 'TW' },
-  youtube:  { tag: 'pt-youtube',  uClass: 'u-youtube',  label: 'YT' },
-  kick:     { tag: 'pt-kick',     uClass: 'u-kick',     label: 'KC' },
-  abstract: { tag: 'pt-abstract', uClass: 'u-abstract', label: 'ABS' },
-  discord:  { tag: 'pt-discord',  uClass: 'u-discord',  label: 'DC' }
+/* ─── MESSAGE RENDERER ──────────────────────────────────────────────────── */
+const platformData={
+  twitch:  {tag:'pt-twitch',  uClass:'u-twitch',  label:'TW'},
+  youtube: {tag:'pt-youtube', uClass:'u-youtube', label:'YT'},
+  kick:    {tag:'pt-kick',    uClass:'u-kick',    label:'KC'},
+  abstract:{tag:'pt-abstract',uClass:'u-abstract',label:'ABS'},
+  discord: {tag:'pt-discord', uClass:'u-discord', label:'DC'},
 };
 
-/* Helper: Escape HTML to prevent XSS */
-function esc(s) {
-  return String(s)
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
-/* ── Public Message Interface ── */
-function addMessage(platform, username, text, badge) {
-  if (!platformData[platform]) return;
-  emptyState.style.display = 'none';
-
+function addMessage(platform,username,text,badge){
+  if(!platformData[platform]||!text?.trim())return;
+  emptyState.style.display='none';
   counts[platform]++;
-  document.getElementById('cnt-' + platform).textContent = counts[platform];
-
-  const p    = platformData[platform];
-  const time = new Date().toTimeString().slice(0, 5);
-
-  const badgeMap = { sub: 'badge-sub', mod: 'badge-mod', vip: 'badge-vip' };
-  const badgeHtml = badge && badgeMap[badge]
-    ? `<span class="badge ${badgeMap[badge]}">${esc(badge)}</span>` : '';
-
-  const div = document.createElement('div');
-  div.className = 'msg' + (filter !== 'all' && filter !== platform ? ' platform-hidden' : '');
-  div.dataset.platform = platform;
-  div.innerHTML = `
+  document.getElementById('cnt-'+platform).textContent=counts[platform];
+  const p=platformData[platform],time=new Date().toTimeString().slice(0,5);
+  const badgeMap={sub:'badge-sub',mod:'badge-mod',vip:'badge-vip'};
+  const badgeHtml=badge&&badgeMap[badge]?`<span class="badge ${badgeMap[badge]}">${esc(badge)}</span>`:'';
+  const div=document.createElement('div');
+  div.className='msg'+(filter!=='all'&&filter!==platform?' platform-hidden':'');
+  div.dataset.platform=platform;
+  div.innerHTML=`
     <span class="platform-tag ${p.tag}">${p.label}</span>
     <div class="msg-body">
       <div class="msg-header">
@@ -857,203 +530,343 @@ function addMessage(platform, username, text, badge) {
       </div>
       <div class="msg-text">${esc(text)}</div>
     </div>`;
-
   msgContainer.appendChild(div);
-  if (autoScroll) msgContainer.scrollTop = msgContainer.scrollHeight;
+  if(autoScroll)msgContainer.scrollTop=msgContainer.scrollHeight;
 }
 
-/* ── Streamer.bot WebSocket ── */
-const SB_WS = (typeof CONFIG !== 'undefined' && CONFIG.SB_WS_URL) || 'ws://127.0.0.1:8080/';
-
-function connectStreamerBot() {
-  sbWs = new WebSocket(SB_WS);
-  const ws = sbWs;
-
-  ws.onopen = () => {
-    ws.send(JSON.stringify({
-      request: 'Subscribe',
-      events: {
-        Twitch:  ['ChatMessage'],
-        YouTube: ['Message'],
-        Kick:    ['ChatMessage']
-      },
-      id: 'multichat-sub'
-    }));
+/* ════════════════════════════════════════════════════════════════════════════
+   TWITCH IRC  — anonymous read-only, no token needed
+════════════════════════════════════════════════════════════════════════════ */
+function connectTwitch() {
+  const channel=(CONFIG.TWITCH_CHANNEL||'').toLowerCase().trim();
+  if(!channel)return;
+  setStatus('twitch','connecting');
+  const ws=new WebSocket('wss://irc-ws.chat.twitch.tv:443');
+  ws.onopen=()=>{
+    ws.send('CAP REQ :twitch.tv/tags twitch.tv/commands');
+    ws.send('PASS oauth:justinfan12345');
+    ws.send('NICK justinfan12345');
+    ws.send(`JOIN #${channel}`);
   };
-
-  ws.onmessage = (event) => {
-    try {
-      const data = JSON.parse(event.data);
-      handleSBEvent(data);
-    } catch(e) {}
+  ws.onmessage=(event)=>{
+    event.data.split('\r\n').forEach(line=>{
+      if(!line)return;
+      if(line.startsWith('PING')){ws.send('PONG :tmi.twitch.tv');return;}
+      if(line.includes('366')){setStatus('twitch','connected');return;}
+      const m=line.match(/^(@[^ ]+ )?:(\S+)!\S+ PRIVMSG #\S+ :(.+)$/);
+      if(!m)return;
+      const tags={};
+      (m[1]||'').replace(/^@/,'').split(';').forEach(t=>{const[k,v]=t.split('=');tags[k]=v;});
+      const name=tags['display-name']||m[2],text=m[3],badges=tags['badges']||'';
+      const badge=badges.includes('broadcaster')?'mod':tags['subscriber']==='1'?'sub':tags['mod']==='1'?'mod':'';
+      addMessage('twitch',name,text,badge);
+    });
   };
-
-  ws.onclose = () => setTimeout(connectStreamerBot, 5000);
+  ws.onclose=()=>{setStatus('twitch','error');setTimeout(connectTwitch,5000);};
+  ws.onerror=()=>setStatus('twitch','error');
 }
 
-function handleSBEvent(data) {
-  const evt = data.event;
-  if (!evt) return;
-  console.log('[SB EVENT]', evt.source, evt.type, JSON.stringify(data).slice(0, 300));
+/* ════════════════════════════════════════════════════════════════════════════
+   KICK — uses hardcoded chatroom ID (resolved once during Setup)
+   No CORS proxy needed at runtime — goes straight to Pusher.
+   To get your chatroom ID manually: kick.com/api/v2/channels/YOUR_SLUG
+   and look for chatroom.id in the JSON.
+════════════════════════════════════════════════════════════════════════════ */
+function connectKick() {
+  const slug = (CONFIG.KICK_CHANNEL || '').toLowerCase().trim();
+  if (!slug) return;
 
-  if (evt.source === 'Twitch' && evt.type === 'ChatMessage') {
-    const m = data.data.message;
-    addMessage('twitch', m.displayName, m.message, m.subscriber ? 'sub' : m.moderator ? 'mod' : '');
-  }
-  
-  if (evt.source === 'YouTube' && evt.type === 'Message') {
-    const d = data.data || {};
-    const username = d.user?.name || d.user?.displayName || 'YouTube User';
-    const text = typeof d.message === 'string' ? d.message : (d.message?.text || '');
-    if (text) addMessage('youtube', username, text, '');
-  }
-  
-  if (evt.source === 'Kick' && evt.type === 'ChatMessage') {
-    // Streamer.bot nests Kick data inside data.data.message
-    const d = data.data?.message || data.data || {};
+  setStatus('kick', 'connecting');
 
-    const username =
-      d.user?.login ||
-      d.user?.name ||
-      d.user?.username ||
-      d.sender?.login ||
-      d.sender?.username ||
-      'Kick User';
-
-    let text = '';
-    if (typeof d.text === 'string' && d.text) {
-      text = d.text;
-    } else if (Array.isArray(d.parts) && d.parts.length) {
-      text = d.parts.map(p => p.text || '').join('');
-    } else if (typeof d.content === 'string' && d.content) {
-      text = d.content;
-    } else {
-      text = '[DEBUG]: ' + JSON.stringify(d);
-    }
-
-    const isMod = d.user?.isModerator || d.user?.is_moderator || false;
-    const isSub = d.user?.isSubscribed || d.user?.is_subscriber || false;
-    const badge = isSub ? 'sub' : isMod ? 'mod' : '';
-
-    addMessage('kick', username, text, badge);
-  }
-}
-
-connectStreamerBot();
-
-/* ── Abstract Chat WebSocket ── */
-const ABS_WS_URL = (typeof CONFIG !== 'undefined' && CONFIG.ABS_WS_URL) || 'wss://abstools.top/api/ws?channel_id=fc9895d2-a15e-48ba-8b71-e41f6ff972d6';
-const ABS_SEEN   = new Set();
-
-function connectAbstract() {
-  const ws = new WebSocket(ABS_WS_URL);
-  ws.onmessage = (event) => {
-    try {
-      const data = JSON.parse(event.data);
-      
-      if (data.type === 'chat_history' && data.payload?.messages) {
-        data.payload.messages.forEach(m => {
-          if (!ABS_SEEN.has(m.id)) {
-            ABS_SEEN.add(m.id);
-            addMessage('abstract', m.user_name || 'anon', m.text || '', '');
-          }
-        });
-      }
-      
-      if (data.type === 'chat_message' && data.payload) {
-        const m = data.payload;
-        if (!ABS_SEEN.has(m.id)) {
-          ABS_SEEN.add(m.id);
-          addMessage('abstract', m.user_name || 'anon', m.text || '', '');
-        }
-      }
-    } catch(e) {}
-  };
-  ws.onclose = () => setTimeout(connectAbstract, 5000);
-}
-
-connectAbstract();
-
-/* ── Discord Bridge WebSocket ── */
-function connectDiscord() {
-  const url = (typeof CONFIG !== 'undefined' && CONFIG.DISCORD_WS_URL) || 'wss://ada-price-bot-production.up.railway.app/';
-  const ws = new WebSocket(url);
-
-  ws.onopen = () => console.log('Discord bridge connected');
-
-  ws.onmessage = (event) => {
-    try {
-      const d = JSON.parse(event.data);
-      console.log('[BRIDGE RAW]', JSON.stringify(d).slice(0, 300));
-      if (d.platform === 'discord' && d.username && d.text) {
-        addMessage('discord', d.username, d.text, '');
-      } else if (d.platform === 'youtube') {
-        const user = d.username || d.author || d.displayName || 'YouTube User';
-        const text = d.text || d.message || d.content || '';
-        if (user && text) addMessage('youtube', user, text, '');
-      }
-    } catch(e) {}
-  };
-
-  ws.onclose = () => setTimeout(connectDiscord, 5000);
-  ws.onerror = () => {}; // Silently retry if bridge isn't running
-}
-
-connectDiscord();
-
-/* ── Send to All Platforms via Streamer.bot ── */
-function sendToAll() {
-  const input = document.getElementById('send-input');
-  const btn   = document.getElementById('send-btn');
-  const text  = input.value.trim();
-  if (!text || btn.classList.contains('sending')) return;
-
-  // Find the open Streamer.bot WebSocket
-  if (!sbWs || sbWs.readyState !== WebSocket.OPEN) {
-    console.warn('[Send] Streamer.bot not connected');
-    input.placeholder = '⚠️ Streamer.bot not connected';
-    setTimeout(() => { input.placeholder = 'Send to all platforms…'; }, 3000);
+  // Use hardcoded chatroom ID if already resolved (Setup wizard or pre-filled overlay)
+  const savedId = parseInt(CONFIG.KICK_CHATROOM_ID) || 0;
+  if (savedId) {
+    startKickPusher(savedId);
     return;
   }
 
-  btn.classList.add('sending');
-  btn.textContent = 'Sending…';
-
-  // Streamer.bot DoAction or SendMessage — send to each connected platform
-  const platforms = ['Twitch', 'YouTube', 'Kick'];
-  platforms.forEach(platform => {
-    sbWs.send(JSON.stringify({
-      request: 'SendMessage',
-      message: { platform, message: text },
-      id: 'send-' + platform.toLowerCase() + '-' + Date.now()
-    }));
+  // Otherwise resolve automatically at runtime via the discord-bridge proxy,
+  // falling back to corsproxy.io if no bridge is configured.
+  resolveKickChatroomId(slug).then(chatroomId => {
+    if (!chatroomId) {
+      console.warn('[Kick] Could not resolve chatroom ID for', slug);
+      setStatus('kick', 'error');
+      setTimeout(connectKick, 30000);
+      return;
+    }
+    CONFIG.KICK_CHATROOM_ID = chatroomId; // cache so reconnects skip lookup
+    startKickPusher(chatroomId);
   });
-
-  // Show as own message in the overlay too
-  addMessage('twitch', (typeof CONFIG !== 'undefined' && CONFIG.BRAND_NAME) || 'You', text, '');
-
-  input.value = '';
-  setTimeout(() => {
-    btn.classList.remove('sending');
-    btn.textContent = 'Send to All';
-  }, 1000);
 }
 
-function toggleUI() {
-  const app = document.getElementById('app');
-  app.classList.toggle('ui-hidden');
-  saveSettings({ uiHidden: app.classList.contains('ui-hidden') });
-}
-
-// Restore UI hidden state on load
-(function() {
-  if (loadSettings().uiHidden) {
-    document.getElementById('app').classList.add('ui-hidden');
+async function resolveKickChatroomId(slug) {
+  // 1. Try the discord-bridge HTTP proxy (no CORS/Cloudflare issues)
+  const bridgeBase = (CONFIG.DISCORD_WS_URL || '').trim();
+  if (bridgeBase) {
+    try {
+      const httpBase = bridgeBase
+        .replace(/^wss:\/\//, 'https://')
+        .replace(/^ws:\/\//, 'http://')
+        .replace(/\/+$/, '')
+        .replace(/:8081$/, ':8082'); // local bridge: HTTP is WS port + 1
+      const r = await fetch(`${httpBase}/kick-chatroom?slug=${encodeURIComponent(slug)}`);
+      const d = await r.json();
+      if (d.chatroomId) { console.log('[Kick] Chatroom ID from bridge:', d.chatroomId); return d.chatroomId; }
+    } catch(e) { console.warn('[Kick] Bridge lookup failed:', e.message); }
   }
+
+  // 2. Fallback: corsproxy.io → Kick v2 API
+  const proxies = [
+    `https://corsproxy.io/?url=https://kick.com/api/v2/channels/${slug}`,
+    `https://api.codetabs.com/v1/proxy?quest=https://kick.com/api/v2/channels/${slug}`,
+  ];
+  for (const url of proxies) {
+    try {
+      const r = await fetch(url);
+      const d = await r.json();
+      const id = d?.chatroom?.id;
+      if (id) { console.log('[Kick] Chatroom ID from proxy:', id); return id; }
+    } catch(e) { console.warn('[Kick] Proxy lookup failed:', url, e.message); }
+  }
+  return null;
+}
+
+function startKickPusher(chatroomId) {
+  const PUSHER_KEY     = '32cbd69e4b950bf97679';
+  const PUSHER_CLUSTER = 'us2';
+  const pusherUrl = `wss://ws-${PUSHER_CLUSTER}.pusher.com/app/${PUSHER_KEY}?protocol=7&client=js&version=8.4.0-rc2&flash=false`;
+  const ws = new WebSocket(pusherUrl);
+
+  ws.onopen = () => console.log('[Kick] Pusher connected, chatroom:', chatroomId);
+
+  ws.onmessage = (event) => {
+    let msg; try { msg = JSON.parse(event.data); } catch { return; }
+
+    if (msg.event === 'pusher:connection_established') {
+      setStatus('kick', 'connected');
+      ws.send(JSON.stringify({ event: 'pusher:subscribe', data: { auth: '', channel: `chatrooms.${chatroomId}.v2` } }));
+    }
+
+    if (msg.event === 'App\\Events\\ChatMessageEvent') {
+      let d; try { d = typeof msg.data === 'string' ? JSON.parse(msg.data) : msg.data; } catch { return; }
+      const username = d.sender?.username || d.sender?.slug || 'Kick User';
+      const text     = d.content || '';
+      if (!text.trim()) return;
+      const badges = d.sender?.identity?.badges || [];
+      const isMod  = d.sender?.is_channel_owner || badges.some(b => b.type === 'moderator');
+      const isSub  = badges.some(b => b.type === 'subscriber');
+      addMessage('kick', username, text, isSub ? 'sub' : isMod ? 'mod' : '');
+    }
+  };
+
+  ws.onclose = () => { setStatus('kick', 'error'); setTimeout(connectKick, 5000); };
+  ws.onerror = () => setStatus('kick', 'error');
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   YOUTUBE LIVE CHAT
+   Mode A (preferred): YOUTUBE_PROXY_URL points to Railway discord-bridge.js
+     — no API key in the overlay, key lives on the server
+   Mode B (fallback):  YOUTUBE_API_KEY + YOUTUBE_CHANNEL_ID set directly
+     — calls YouTube API from the browser
+════════════════════════════════════════════════════════════════════════════ */
+function connectYouTube() {
+  const proxyUrl  = (CONFIG.YOUTUBE_PROXY_URL  || '').replace(/\/$/, '').trim();
+  const apiKey    = (CONFIG.YOUTUBE_API_KEY    || '').trim();
+  const channelId = (CONFIG.YOUTUBE_CHANNEL_ID || '').trim();
+
+  if(!channelId)return; // disabled — no channel configured
+
+  if(!proxyUrl && !apiKey){
+    console.warn('[YouTube] Neither YOUTUBE_PROXY_URL nor YOUTUBE_API_KEY configured — disabled');
+    return;
+  }
+
+  setStatus('youtube','connecting');
+
+  const pollMs  = Math.max(CONFIG.YOUTUBE_POLL_MS||8000, 8000);
+  const seenIds = new Set();
+  let nextPageToken = '';
+  let pollPending   = false;
+
+  function schedulePoll(delay) {
+    if(pollPending)return;
+    pollPending=true;
+    setTimeout(()=>{pollPending=false;pollChat();},delay);
+  }
+
+  // Build fetch URL — proxy or direct
+  function ytUrl(action, params) {
+    const p = new URLSearchParams(params);
+    if(proxyUrl) {
+      p.set('action', action);
+      return `${proxyUrl}/yt-proxy?${p}`;
+    }
+    // Direct YouTube API
+    const endpoints = {
+      findLive:     `https://www.googleapis.com/youtube/v3/search?part=id&channelId=${channelId}&type=video&eventType=live&key=${apiKey}`,
+      getLiveChatId:`https://www.googleapis.com/youtube/v3/videos?part=liveStreamingDetails&id=${params.videoId}&key=${apiKey}`,
+      poll:         `https://www.googleapis.com/youtube/v3/liveChat/messages?liveChatId=${params.liveChatId}&part=snippet,authorDetails&maxResults=200&key=${apiKey}${params.pageToken?'&pageToken='+params.pageToken:''}`,
+    };
+    return endpoints[action];
+  }
+
+  function findActiveLivestream() {
+    fetch(ytUrl('findLive',{channelId}))
+      .then(r=>r.json())
+      .then(data=>{
+        if(data.error){
+          console.warn('[YouTube] Search error:',data.error.message);
+          setStatus('youtube','error');
+          setTimeout(findActiveLivestream,60000);
+          return;
+        }
+        const videoId=data?.items?.[0]?.id?.videoId;
+        if(!videoId){
+          console.warn('[YouTube] No active livestream — retrying in 60s');
+          setStatus('youtube','error');
+          setTimeout(findActiveLivestream,60000);
+          return;
+        }
+        console.log('[YouTube] Found live video:',videoId);
+        getLiveChatId(videoId);
+      })
+      .catch(err=>{
+        console.warn('[YouTube] Could not search:',err.message);
+        setStatus('youtube','error');
+        setTimeout(findActiveLivestream,30000);
+      });
+  }
+
+  let liveChatId=null;
+
+  function getLiveChatId(videoId) {
+    fetch(ytUrl('getLiveChatId',{videoId}))
+      .then(r=>r.json())
+      .then(data=>{
+        if(data.error){
+          console.warn('[YouTube] Videos error:',data.error.message);
+          setStatus('youtube','error');
+          setTimeout(findActiveLivestream,60000);
+          return;
+        }
+        liveChatId=data?.items?.[0]?.liveStreamingDetails?.activeLiveChatId;
+        if(!liveChatId){
+          console.warn('[YouTube] No active live chat — retrying in 60s');
+          setStatus('youtube','error');
+          setTimeout(findActiveLivestream,60000);
+          return;
+        }
+        setStatus('youtube','connected');
+        schedulePoll(0);
+      })
+      .catch(err=>{
+        console.warn('[YouTube] Video fetch error:',err.message);
+        setStatus('youtube','error');
+        setTimeout(findActiveLivestream,30000);
+      });
+  }
+
+  function pollChat() {
+    if(!liveChatId)return;
+    const params={liveChatId};
+    if(nextPageToken)params.pageToken=nextPageToken;
+    fetch(ytUrl('poll',params))
+      .then(r=>r.json())
+      .then(data=>{
+        if(data.error){
+          console.warn('[YouTube] Poll error:',data.error.message);
+          setStatus('youtube','error');
+          if(data.error.code===403||data.error.code===401){console.warn('[YouTube] Auth/quota error — stopped');return;}
+          schedulePoll(30000);
+          return;
+        }
+        nextPageToken=data.nextPageToken||nextPageToken;
+        const interval=data.pollingIntervalMillis||pollMs;
+        (data.items||[]).forEach(item=>{
+          if(seenIds.has(item.id))return;
+          seenIds.add(item.id);
+          const sn=item.snippet||{},au=item.authorDetails||{};
+          const text=sn.displayMessage||sn.textMessageDetails?.messageText||'';
+          if(!text.trim())return;
+          const badge=au.isChatSponsor?'sub':au.isChatModerator?'mod':'';
+          addMessage('youtube',au.displayName||'YouTube User',text,badge);
+        });
+        schedulePoll(Math.max(interval,pollMs));
+      })
+      .catch(err=>{
+        console.warn('[YouTube] Poll fetch error:',err.message);
+        setStatus('youtube','error');
+        schedulePoll(pollMs*2);
+      });
+  }
+
+  findActiveLivestream();
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   ABSTRACT CHAT  — direct WebSocket
+════════════════════════════════════════════════════════════════════════════ */
+function connectAbstract() {
+  const url=(CONFIG.ABS_WS_URL||'').trim();
+  if(!url)return;
+  setStatus('abstract','connecting');
+  const ABS_SEEN=new Set();
+  const ws=new WebSocket(url);
+  ws.onopen=()=>setStatus('abstract','connected');
+  ws.onmessage=(event)=>{
+    try{
+      const data=JSON.parse(event.data);
+      if(data.type==='chat_history'&&data.payload?.messages){
+        data.payload.messages.forEach(m=>{if(!ABS_SEEN.has(m.id)){ABS_SEEN.add(m.id);addMessage('abstract',m.user_name||'anon',m.text||'','');}});
+      }
+      if(data.type==='chat_message'&&data.payload){
+        const m=data.payload;if(!ABS_SEEN.has(m.id)){ABS_SEEN.add(m.id);addMessage('abstract',m.user_name||'anon',m.text||'','');}
+      }
+    }catch(e){}
+  };
+  ws.onclose=()=>{setStatus('abstract','error');setTimeout(connectAbstract,5000);};
+  ws.onerror=()=>setStatus('abstract','error');
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   DISCORD BRIDGE  — discord-bridge.js local or Railway
+════════════════════════════════════════════════════════════════════════════ */
+function connectDiscord() {
+  const url=(CONFIG.DISCORD_WS_URL||'').trim();
+  if(!url)return;
+  setStatus('discord','connecting');
+  const ws=new WebSocket(url);
+  ws.onopen=()=>{setStatus('discord','connected');console.log('[Discord] bridge connected');};
+  ws.onmessage=(event)=>{
+    try{const d=JSON.parse(event.data);if(d.platform==='discord'&&d.username&&d.text)addMessage('discord',d.username,d.text,'');}catch(e){}
+  };
+  ws.onclose=()=>{setStatus('discord','error');setTimeout(connectDiscord,5000);};
+  ws.onerror=()=>{};
+}
+
+/* ─── UI TOGGLE ─────────────────────────────────────────────────────────── */
+function toggleUI() {
+  const app=document.getElementById('app');
+  app.classList.toggle('ui-hidden');
+  saveSettings({uiHidden:app.classList.contains('ui-hidden')});
+}
+(function(){if(loadSettings().uiHidden)document.getElementById('app').classList.add('ui-hidden');})();
+
+/* ─── APP INIT ──────────────────────────────────────────────────────────── */
+(async function(){
+  await loadElectronSettings();   // populates CONFIG from Electron/saved settings first
+  applyBranding();
+  // All connections start AFTER CONFIG is fully populated
+  connectTwitch();
+  connectKick();
+  connectYouTube();
+  connectAbstract();
+  connectDiscord();
 })();
 
-// Global access for debugging/external triggers
-window.addMessage = addMessage;
+// Global debug access
+window.addMessage=addMessage;
 </script>
 </body>
 </html>
